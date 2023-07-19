@@ -157,7 +157,7 @@ namespace Nefta.ToolboxSdk.Authorization.AuthProviders
         protected virtual UnityWebRequest CreateExchangeForTokenRequest(string code)
         {
             var url = GetCodeExchangeUrl(code).ToString();
-            return new UnityWebRequest(url, CodeExchangeMethod, new DownloadHandlerBuffer(), new UploadHandlerRaw(null) );
+            return new UnityWebRequest(url, CodeExchangeMethod, new DownloadHandlerBuffer(), new UploadHandlerRaw(null));
         }
 
         private void PostError(object error)

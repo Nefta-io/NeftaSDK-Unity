@@ -5,11 +5,11 @@ This package is designed to provide a set of tools and assets to help you quickl
 
 ## Requirements
 
-Unity 2020.3 or later
+Unity 2020.3 or higher
 
 ## Supported platforms
 
-Standalone, IOS, Android, Webgl
+Standalone, IOS, Android
 
 ## NeftaEditorWindow
 
@@ -44,7 +44,7 @@ You can find online documentation for the NeftaToolboxSDK here: https://docs.nef
 
 The BE API reference can be found here: https://docs.nefta.io/reference/
 
-While the Toolbox SDK API reference be be found here: https://neftaweb3.github.io/suite-for-unity/ToolboxSdk/Nefta.ToolboxSdk.Toolbox.html
+While the Toolbox SDK API reference be be found here: https://nefta-io.github.io/suite-for-unity/ToolboxSdk/Nefta.ToolboxSdk.Toolbox.html
 
 ## Support
 

@@ -324,7 +324,12 @@ namespace Nefta.AdSdk
 
         private WebViewObject GetAvailableWebViewFor(AdPlacement adPlacement)
         {
-            if (!_availableWebViews.TryDequeue(out var webView))
+            WebViewObject webView = null;
+            if (_availableWebViews.Count > 0)
+            {
+                webView = _availableWebViews.Dequeue();
+            }
+            else
             {
                 webView = CreateWebView();
             }

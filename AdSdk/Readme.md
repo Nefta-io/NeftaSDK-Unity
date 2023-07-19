@@ -4,11 +4,13 @@ Welcome to the Nefta Ad Unity Package! The purpose of this package is to simplif
 
 ## Requirements
 
-Unity 2020.3 or later
+- Unity 2020.3 or higher
+- Android: API level 22 or higher
+- iOS: version 11 or higher
 
 ## Supported platforms
 
-IOS/Android/Win Standalone/MacOS Standalone
+Standalone, IOS, Android
 
 ### Getting started
 
@@ -77,4 +79,11 @@ IOS/Android/Win Standalone/MacOS Standalone
 ## Demo sample
 
 Feel free to check out AdDemo for an integration example.
+
+## Documentation
+
+You can find online documentation for the NeftaToolboxSDK here: https://dash.readme.com/project/nefta2/v1.0/docs/events
+
+The API reference can be found here: https://nefta-io.github.io/suite-for-unity/AdSdk/index.html
+
 
