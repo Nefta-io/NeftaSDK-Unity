@@ -1,4 +1,3 @@
-using Nefta.Core.Events;
 using UnityEngine;
 
 namespace Nefta.Core
@@ -13,13 +12,12 @@ namespace Nefta.Core
         private const string EmailKey = "email";
         
         public const string BaseUrl = "https://api.Nefta.io/v2.0";
-        public const string SdkVersion = "2.0.6";
 
         private NeftaUser _neftaUser;
 
         public static NeftaCore Instance;
         
-        public NeftaEvents NeftaEvents { get; private set; }
+        public Analytics Analytics { get; private set; }
 
         public NeftaUser NeftaUser
         {
@@ -36,14 +34,12 @@ namespace Nefta.Core
             if (Instance == null)
             {
                 Instance = new NeftaCore();
-                NeftaEvents.Enable(true);
+                Instance.Analytics = new Analytics();
 
                 Instance.LoadUser();
 #if UNITY_EDITOR
                 UnityEditor.EditorApplication.playModeStateChanged += Instance.OnPlayModeChange;
 #endif
-
-                NeftaEvents.Record(new SessionEvent() { _sessionCount  = 1, _previousSessionLengthInSeconds = 34});
             }
 
             return Instance;

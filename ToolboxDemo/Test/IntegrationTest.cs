@@ -48,7 +48,11 @@ namespace Nefta.ToolboxDemo.Test
         private T GetObject<T>(string name) where T : Object
         {
             var path = name.Split('/');
+#if UNITY_2022_3_OR_NEWER
             var unityObjects = Object.FindObjectsByType<T>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+#else
+            var unityObjects = Object.FindObjectsOfType<T>(true);
+#endif
             foreach (var unityObject in unityObjects)
             {
                 if (unityObject.name == path[path.Length - 1])

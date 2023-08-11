@@ -11,8 +11,6 @@ namespace Nefta.ToolboxDemo.Authentication.MetaMask
             appUrl = "nefta.io";
             encryptionPassword = "neftasample";
             sessionIdentifier = "nefta.toolboxSDK.demo";
-
-
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using Nefta.Core;
 using Nefta.Core.Resolvers;
@@ -15,23 +16,54 @@ namespace Nefta.ToolboxSdk
         private readonly List<IJsonFormatterResolver> _resolvers;
         private readonly string _userAgent;
         
+        private StringBuilder _stringBuilder;
+
         public RestHelper()
         {
             _resolvers = new List<IJsonFormatterResolver>
             {
-                EnumResolver.UnderlyingValue,
                 StandardResolver.Default,
                 CoreResolvers.Instance,
                 ToolboxResolvers.Instance
             };
             
             _userAgent = $"{Application.identifier}/{Application.version} {SystemInfo.deviceModel}";
+            
+            _stringBuilder = new StringBuilder();
         }
         
         public void SendGetRequest(string endPoint, Action<RestResponse> callback)
         {
-            var url = NeftaCore.BaseUrl + endPoint;
-            var request = UnityWebRequest.Get(url);
+            SendGetRequest(endPoint, null, callback);
+        }
+
+        public void SendGetRequest(string endPoint, Dictionary<string, string> queryParameters, Action<RestResponse> callback)
+        {
+            _stringBuilder.Clear();
+            _stringBuilder.Append(NeftaCore.BaseUrl);
+            _stringBuilder.Append(endPoint);
+
+            if (queryParameters != null && queryParameters.Count > 0)
+            {
+                var isFirst = true;
+                foreach (var queryParameter in queryParameters)
+                {
+                    if (isFirst)
+                    {
+                        _stringBuilder.Append('?');
+                        isFirst = false;
+                    }
+                    else
+                    {
+                        _stringBuilder.Append('&');
+                    }
+                    _stringBuilder.Append(queryParameter.Key);
+                    _stringBuilder.Append('=');
+                    _stringBuilder.Append(queryParameter.Value);
+                }
+            }
+            
+            var request = UnityWebRequest.Get(_stringBuilder.ToString());
             SetHeaders(request);
             NeftaCore.Info($"SendGetRequest request {endPoint}");
             SendRequest(request, callback);
@@ -39,11 +71,14 @@ namespace Nefta.ToolboxSdk
         
         public void SendPostRequest(string endPoint, byte[] body, Action<RestResponse> callback)
         {
-            var url = NeftaCore.BaseUrl + endPoint;
+            _stringBuilder.Clear();
+            _stringBuilder.Append(NeftaCore.BaseUrl);
+            _stringBuilder.Append(endPoint);
+            var url = _stringBuilder.ToString();
             var uploadHandler = new UploadHandlerRaw(body) { contentType = "application/json" };
             var request = new UnityWebRequest(url, UnityWebRequest.kHttpVerbPOST, new DownloadHandlerBuffer(), uploadHandler);
             SetHeaders(request);
-            NeftaCore.Info($"SendPostRequest request {url} body:{System.Text.Encoding.UTF8.GetString(body)}");
+            NeftaCore.Info($"SendPostRequest request {url} body:{Encoding.UTF8.GetString(body)}");
             SendRequest(request, callback);
         }
 
@@ -59,7 +94,7 @@ namespace Nefta.ToolboxSdk
                 };
                 request.Dispose();
 
-                NeftaCore.Info($"Response statusCode: {response.StatusCode} body:{System.Text.Encoding.UTF8.GetString(response.Body)}");
+                NeftaCore.Info($"Response statusCode: {response.StatusCode} body:{Encoding.UTF8.GetString(response.Body)}");
                 callback?.Invoke(response);
             };
         }

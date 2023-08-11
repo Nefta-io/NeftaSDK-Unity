@@ -145,28 +145,20 @@ namespace Nefta.ToolboxSdk.Formatters.Nefta.ToolboxSdk.Nft
         {
             this.____keyMapping = new global::Utf8Json.Internal.AutomataDictionary()
             {
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("currency"), 0},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("currency_id"), 1},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("principal_amount"), 2},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("interest"), 3},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("days_to_self_destruct"), 4},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("hours_to_self_destruct"), 5},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("minute_to_self_destruct"), 6},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("rental_period_type"), 7},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("nft_staking"), 8},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("burnable"), 9},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("rentable"), 10},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("timed_assets"), 11},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("evolvable"), 12},
+                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("days_to_self_destruct"), 0},
+                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("hours_to_self_destruct"), 1},
+                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("minute_to_self_destruct"), 2},
+                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("rental_period_type"), 3},
+                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("nft_staking"), 4},
+                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("burnable"), 5},
+                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("rentable"), 6},
+                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("timed_assets"), 7},
+                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("evolvable"), 8},
             };
 
             this.____stringByteKeys = new byte[][]
             {
-                JsonWriter.GetEncodedPropertyNameWithBeginObject("currency"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("currency_id"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("principal_amount"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("interest"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("days_to_self_destruct"),
+                JsonWriter.GetEncodedPropertyNameWithBeginObject("days_to_self_destruct"),
                 JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("hours_to_self_destruct"),
                 JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("minute_to_self_destruct"),
                 JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("rental_period_type"),
@@ -189,30 +181,22 @@ namespace Nefta.ToolboxSdk.Formatters.Nefta.ToolboxSdk.Nft
             
 
             writer.WriteRaw(this.____stringByteKeys[0]);
-            writer.WriteString(value.currency);
-            writer.WriteRaw(this.____stringByteKeys[1]);
-            writer.WriteString(value.currency_id);
-            writer.WriteRaw(this.____stringByteKeys[2]);
-            writer.WriteSingle(value.principal_amount);
-            writer.WriteRaw(this.____stringByteKeys[3]);
-            writer.WriteSingle(value.interest);
-            writer.WriteRaw(this.____stringByteKeys[4]);
             writer.WriteInt32(value.days_to_self_destruct);
-            writer.WriteRaw(this.____stringByteKeys[5]);
+            writer.WriteRaw(this.____stringByteKeys[1]);
             writer.WriteInt32(value.hours_to_self_destruct);
-            writer.WriteRaw(this.____stringByteKeys[6]);
+            writer.WriteRaw(this.____stringByteKeys[2]);
             writer.WriteInt32(value.minute_to_self_destruct);
-            writer.WriteRaw(this.____stringByteKeys[7]);
+            writer.WriteRaw(this.____stringByteKeys[3]);
             writer.WriteString(value.rental_period_type);
-            writer.WriteRaw(this.____stringByteKeys[8]);
+            writer.WriteRaw(this.____stringByteKeys[4]);
             writer.WriteBoolean(value.nft_staking);
-            writer.WriteRaw(this.____stringByteKeys[9]);
+            writer.WriteRaw(this.____stringByteKeys[5]);
             writer.WriteBoolean(value.burnable);
-            writer.WriteRaw(this.____stringByteKeys[10]);
+            writer.WriteRaw(this.____stringByteKeys[6]);
             writer.WriteBoolean(value.rentable);
-            writer.WriteRaw(this.____stringByteKeys[11]);
+            writer.WriteRaw(this.____stringByteKeys[7]);
             writer.WriteBoolean(value.timed_assets);
-            writer.WriteRaw(this.____stringByteKeys[12]);
+            writer.WriteRaw(this.____stringByteKeys[8]);
             writer.WriteBoolean(value.evolvable);
             
             writer.WriteEndObject();
@@ -226,14 +210,6 @@ namespace Nefta.ToolboxSdk.Formatters.Nefta.ToolboxSdk.Nft
             }
             
 
-            var __currency__ = default(string);
-            var __currency__b__ = false;
-            var __currency_id__ = default(string);
-            var __currency_id__b__ = false;
-            var __principal_amount__ = default(float);
-            var __principal_amount__b__ = false;
-            var __interest__ = default(float);
-            var __interest__b__ = false;
             var __days_to_self_destruct__ = default(int);
             var __days_to_self_destruct__b__ = false;
             var __hours_to_self_destruct__ = default(int);
@@ -268,54 +244,38 @@ namespace Nefta.ToolboxSdk.Formatters.Nefta.ToolboxSdk.Nft
                 switch (key)
                 {
                     case 0:
-                        __currency__ = reader.ReadString();
-                        __currency__b__ = true;
-                        break;
-                    case 1:
-                        __currency_id__ = reader.ReadString();
-                        __currency_id__b__ = true;
-                        break;
-                    case 2:
-                        __principal_amount__ = reader.ReadSingle();
-                        __principal_amount__b__ = true;
-                        break;
-                    case 3:
-                        __interest__ = reader.ReadSingle();
-                        __interest__b__ = true;
-                        break;
-                    case 4:
                         __days_to_self_destruct__ = reader.ReadInt32();
                         __days_to_self_destruct__b__ = true;
                         break;
-                    case 5:
+                    case 1:
                         __hours_to_self_destruct__ = reader.ReadInt32();
                         __hours_to_self_destruct__b__ = true;
                         break;
-                    case 6:
+                    case 2:
                         __minute_to_self_destruct__ = reader.ReadInt32();
                         __minute_to_self_destruct__b__ = true;
                         break;
-                    case 7:
+                    case 3:
                         __rental_period_type__ = reader.ReadString();
                         __rental_period_type__b__ = true;
                         break;
-                    case 8:
+                    case 4:
                         __nft_staking__ = reader.ReadBoolean();
                         __nft_staking__b__ = true;
                         break;
-                    case 9:
+                    case 5:
                         __burnable__ = reader.ReadBoolean();
                         __burnable__b__ = true;
                         break;
-                    case 10:
+                    case 6:
                         __rentable__ = reader.ReadBoolean();
                         __rentable__b__ = true;
                         break;
-                    case 11:
+                    case 7:
                         __timed_assets__ = reader.ReadBoolean();
                         __timed_assets__b__ = true;
                         break;
-                    case 12:
+                    case 8:
                         __evolvable__ = reader.ReadBoolean();
                         __evolvable__b__ = true;
                         break;
@@ -329,10 +289,6 @@ namespace Nefta.ToolboxSdk.Formatters.Nefta.ToolboxSdk.Nft
             }
 
             var ____result = new global::Nefta.ToolboxSdk.Nft.NftCharacteristics();
-            if(__currency__b__) ____result.currency = __currency__;
-            if(__currency_id__b__) ____result.currency_id = __currency_id__;
-            if(__principal_amount__b__) ____result.principal_amount = __principal_amount__;
-            if(__interest__b__) ____result.interest = __interest__;
             if(__days_to_self_destruct__b__) ____result.days_to_self_destruct = __days_to_self_destruct__;
             if(__hours_to_self_destruct__b__) ____result.hours_to_self_destruct = __hours_to_self_destruct__;
             if(__minute_to_self_destruct__b__) ____result.minute_to_self_destruct = __minute_to_self_destruct__;

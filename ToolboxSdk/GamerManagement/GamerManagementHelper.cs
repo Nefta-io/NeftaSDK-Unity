@@ -55,9 +55,45 @@ namespace Nefta.ToolboxSdk.GamerManagement
         /// <returns></returns>
         public void GetGamerOwnedAssets(Action<OwnedAssetsResponse> onAssetsLoaded)
         {
+            GetGamerOwnedAssets(null, onAssetsLoaded);
+        }
+        
+        public void GetGamerOwnedAssets(string ownershipId, bool onlyRental, Action<OwnedAssetsResponse> onAssetsLoaded)
+        {
+            var parameters = new Dictionary<string, string>();
+            FillOwnershipParameters(parameters, ownershipId, onlyRental);
+            GetGamerOwnedAssets(parameters, onAssetsLoaded);
+        }
+        
+        public void GetGamerOwnedAssets(string ownershipId, bool onlyRental, int pageSize, int page, string sortColumn, bool ascending, Action<OwnedAssetsResponse> onAssetsLoaded)
+        {
+            var parameters = new Dictionary<string, string>();
+            FillOwnershipParameters(parameters, ownershipId, onlyRental);
+            parameters.Add("per_page", pageSize.ToString());
+            parameters.Add("page", page.ToString());
+            parameters.Add("sort", sortColumn);
+            parameters.Add("sort_direction", ascending ? "asc" : "desc");
+            GetGamerOwnedAssets(parameters, onAssetsLoaded);
+            Toolbox.Instance.RestHelper.SendGetRequest("/gamer/assets", parameters, OnAssetsLoaded);
+        }
+        
+        public void GetGamerOwnedAssets(Dictionary<string, string> parameters, Action<OwnedAssetsResponse> onAssetsLoaded)
+        {
             NeftaCore.Log("Getting User Inventory");
             OnAssetsLoadedQueue.Enqueue(onAssetsLoaded);
             Toolbox.Instance.RestHelper.SendGetRequest("/gamer/assets", OnAssetsLoaded);
+        }
+
+        private void FillOwnershipParameters(Dictionary<string, string> parameters, string ownershipId, bool onlyRental)
+        {
+            if (!string.IsNullOrEmpty(ownershipId))
+            {
+                parameters.Add("ownership_id", ownershipId);
+            }
+            if (onlyRental)
+            {
+                parameters.Add("rental", "true");
+            }
         }
 
         private void OnAssetsLoaded(RestResponse restResponse)
