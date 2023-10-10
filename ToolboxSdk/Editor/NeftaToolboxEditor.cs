@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using Nefta.Core.Editor;
 using UnityEditor;
 using UnityEngine;
@@ -22,20 +21,22 @@ namespace Nefta.ToolboxSdk.Editor
         {
             var instance = new NeftaToolboxEditor();
             NeftaEditorWindow.RegisterModule(instance);
+            var coreConfiguration = NeftaEditorWindow.GetConfiguration();
+
+            foreach (var configuration in coreConfiguration._configurations)
+            {
+                if (configuration is ToolboxConfiguration)
+                {
+                    instance._configuration = (ToolboxConfiguration) configuration;
+                }
+            }
             
-            instance._configuration = Resources.Load<ToolboxConfiguration>(ToolboxConfiguration.FileName);
             if (instance._configuration == null)
             {
-                instance._configuration = ScriptableObject.CreateInstance<ToolboxConfiguration>();
+                instance._configuration = new ToolboxConfiguration();
+                coreConfiguration._configurations.Add(instance._configuration);
+                
                 instance._configuration._preloadStrategy = Toolbox.PreloadStrategies.Full;
-
-                var directory = "Assets/Resources";
-                if (!Directory.Exists(directory))
-                {
-                    Directory.CreateDirectory(directory);
-                }
-                AssetDatabase.CreateAsset(instance._configuration, $"{directory}/{ToolboxConfiguration.FileName}.asset");
-                AssetDatabase.SaveAssets();
             }
             
             if (string.IsNullOrEmpty(instance._configuration._marketplaceId))
@@ -70,7 +71,7 @@ namespace Nefta.ToolboxSdk.Editor
             _configuration._marketplaceId = EditorGUILayout.TextField("Marketplace ID", _configuration._marketplaceId);
             if (GUILayout.Button("Apply"))
             {
-                UpdateConfigurationOnDisk();
+                NeftaEditorWindow.UpdateConfigurationOnDisk();
 
             }
             EditorGUILayout.EndHorizontal();
@@ -91,7 +92,7 @@ namespace Nefta.ToolboxSdk.Editor
             {
                 _configuration._preloadStrategy = preloadStrategy;
                 
-                UpdateConfigurationOnDisk();
+                NeftaEditorWindow.UpdateConfigurationOnDisk();
             }
             
             GUILayout.Space(20);
@@ -102,12 +103,6 @@ namespace Nefta.ToolboxSdk.Editor
                 
                 Debug.Log("Asset cache cleared");
             }
-        }
-
-        private void UpdateConfigurationOnDisk()
-        {
-            EditorUtility.SetDirty(_configuration);
-            AssetDatabase.SaveAssetIfDirty(_configuration);
         }
     }   
 }

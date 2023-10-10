@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
+using Nefta.Core;
 
 namespace Nefta.ToolboxSdk
 {
-    public class ToolboxConfiguration : ScriptableObject
+    public class ToolboxConfiguration : NeftaModuleConfiguration
     {
         [Serializable]
         public class OAuthProvider
@@ -22,9 +22,7 @@ namespace Nefta.ToolboxSdk
             public string _clientId;
             public string _secret;
         }
-        
-        public const string FileName = "ToolboxConfiguration";
-        
+
         public string _marketplaceId;
         public Toolbox.PreloadStrategies _preloadStrategy;
         public List<OAuthProvider> _oAuthProviders;

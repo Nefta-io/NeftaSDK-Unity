@@ -37,8 +37,7 @@ namespace Nefta.ToolboxSdk.GamerManagement
                 try
                 {
                     profile = Toolbox.Instance.RestHelper.Deserialize<GamerProfile>(restResponse.Body);
-                    Toolbox.Instance.User._address = profile._address;
-                    NeftaCore.Instance.SaveUser();
+                    Toolbox.Instance.SetAddress(profile._address);
                 }
                 catch (Exception e)
                 {
@@ -74,14 +73,13 @@ namespace Nefta.ToolboxSdk.GamerManagement
             parameters.Add("sort", sortColumn);
             parameters.Add("sort_direction", ascending ? "asc" : "desc");
             GetGamerOwnedAssets(parameters, onAssetsLoaded);
-            Toolbox.Instance.RestHelper.SendGetRequest("/gamer/assets", parameters, OnAssetsLoaded);
         }
         
         public void GetGamerOwnedAssets(Dictionary<string, string> parameters, Action<OwnedAssetsResponse> onAssetsLoaded)
         {
             NeftaCore.Log("Getting User Inventory");
             OnAssetsLoadedQueue.Enqueue(onAssetsLoaded);
-            Toolbox.Instance.RestHelper.SendGetRequest("/gamer/assets", OnAssetsLoaded);
+            Toolbox.Instance.RestHelper.SendGetRequest("/gamer/assets", parameters, OnAssetsLoaded);
         }
 
         private void FillOwnershipParameters(Dictionary<string, string> parameters, string ownershipId, bool onlyRental)
@@ -102,18 +100,18 @@ namespace Nefta.ToolboxSdk.GamerManagement
             OwnedAssetsResponse ownedAssetsResponse = null;
             if (restResponse.IsSuccess)
             {
-                try
-                {
+                //try
+                //{
                     ownedAssetsResponse = Toolbox.Instance.RestHelper.Deserialize<OwnedAssetsResponse>(restResponse.Body);
                     foreach (var ownedAsset in ownedAssetsResponse._results)
                     {
                         ownedAsset._nft.Init();
                     }
-                }
-                catch (Exception e)
-                {
-                    NeftaCore.Warn($"Error parsing owned assets: {e.Message}");
-                }
+                //}
+                //catch (Exception e)
+                //{
+                //    NeftaCore.Warn($"Error parsing owned assets: {e.Message}");
+                //}
             }
             
             callback(ownedAssetsResponse);

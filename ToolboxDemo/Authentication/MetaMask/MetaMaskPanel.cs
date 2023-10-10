@@ -39,7 +39,7 @@ namespace Nefta.ToolboxDemo.Authentication.MetaMask
             _metaMaskUnity = gameObject.AddComponent<MetaMaskWrapper>();
             _metaMaskUnity.Init();
 
-            var qrImagePrefab = Resources.Load<MetaMaskUnityUIQRImage>("MetaMask/Prefabs/UI/MetaMask QR RawImage");
+            var qrImagePrefab = Resources.Load<MetaMaskUnityUIQRImage>("MetaMask/Prefabs/MetaMask QR RawImage");
             var qrImage = Instantiate(qrImagePrefab, _welcomePanel.transform);
             var qrImageTransform = (RectTransform) qrImage.transform;
             qrImageTransform.anchoredPosition = new Vector2(0, 50);
@@ -49,12 +49,12 @@ namespace Nefta.ToolboxDemo.Authentication.MetaMask
             transportBroadcaster.AssignListener(qrImage.gameObject);
             
             _metaMaskUnity.Initialize();
-            _metaMaskUnity.Wallet.WalletAuthorizedHandler += OnWalletAuthorized;
-            _metaMaskUnity.Wallet.WalletDisconnectedHandler += OnWalletDisconnected;
-            _metaMaskUnity.Wallet.WalletReadyHandler += OnWalletReady;
-            _metaMaskUnity.Wallet.AccountChangedHandler += OnAccountChanged;
-            _metaMaskUnity.Wallet.WalletPausedHandler += OnWalletPaused;
-            _metaMaskUnity.Wallet.EthereumRequestResultReceivedHandler += OnEthereumRequestResultReceived;
+            _metaMaskUnity.Wallet.WalletAuthorized += OnWalletAuthorized;
+            _metaMaskUnity.Wallet.WalletDisconnected += OnWalletDisconnected;
+            _metaMaskUnity.Wallet.WalletReady += OnWalletReady;
+            _metaMaskUnity.Wallet.AccountChanged += OnAccountChanged;
+            _metaMaskUnity.Wallet.WalletPaused += OnWalletPaused;
+            _metaMaskUnity.Wallet.EthereumRequestResultReceived += OnEthereumRequestResultReceived;
 
             _singUpButton.onClick.AddListener(SignUp);
             

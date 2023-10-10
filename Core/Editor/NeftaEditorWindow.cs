@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using Nefta.Core.Data;
 using UnityEngine;
 using UnityEditor;
 
@@ -10,17 +12,18 @@ namespace Nefta.Core.Editor
         private const string SdkDevelopmentSymbol = "NEFTA_SDK_DBG";
         private const string SdkReleaseSymbol = "NEFTA_SDK_REL";
 
+        private static NeftaConfiguration _configuration;
         private static NeftaEditorWindow _instance;
         private static List<INeftaEditorModule> _editorModules;
         
-        private bool _groupEnabled;
         private Dictionary<string, Action> _pages;
         private string _selectedPage;
         private Color _originalBackgroundColor;
         private Texture2D _logo;
         private bool _isDevelopmentMode;
+        private bool _isEventRecordingEnabled;
 
-        public static NeftaEditorWindow Instance;
+        private static NeftaEditorWindow Instance;
 
         [InitializeOnLoadMethod]
         private static void Init()
@@ -43,18 +46,72 @@ namespace Nefta.Core.Editor
             }
         }
         
-        [MenuItem("Window/Nefta SDK")]
-        private static void OpenNeftaSDKWindow()
+        public static NeftaConfiguration GetConfiguration()
         {
-            OpenNeftaSDKWindow(null);
+            if (_configuration != null)
+            {
+                return _configuration;
+            }
+            
+            _configuration = Resources.Load<NeftaConfiguration>(NeftaConfiguration.FileName);
+            if (_configuration == null)
+            {
+                _configuration = CreateInstance<NeftaConfiguration>();
+                _configuration._configurations = new List<NeftaModuleConfiguration>();
+
+                _configuration._isEventRecordingEnabledOnStart = true;
+                
+                var directory = "Assets/Resources";
+                if (!Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+                AssetDatabase.CreateAsset(_configuration, $"{directory}/{NeftaConfiguration.FileName}.asset");
+                AssetDatabase.SaveAssets();
+            }
+
+            return _configuration;
         }
 
         public static void OpenNeftaSDKWindow(string page)
         {
             _instance = (NeftaEditorWindow)GetWindow(typeof(NeftaEditorWindow), true, "Nefta SDK");
-            _instance.minSize = new Vector2(580f, 220f);
+            _instance.minSize = new Vector2(580f, 280f);
             _instance._selectedPage = page ?? "Welcome";
             _instance.Show();
+        }
+
+        public static string GetDefines()
+        {
+            return PlayerSettings.GetScriptingDefineSymbolsForGroup(GetNamedBuildTarget());
+        }
+
+        public static void SetSymbolEnabled(string symbol, bool enabled)
+        {
+            var defines = GetDefines();
+            if (enabled)
+            {
+                defines += $";{symbol}";
+            }
+            else
+            {
+                var symbolIndex = defines.IndexOf(symbol, StringComparison.InvariantCulture);
+                if (symbolIndex == 0)
+                {
+                    defines = defines.Replace(symbol, "");
+                }
+                else if (symbolIndex > 0)
+                {
+                    defines = defines.Replace($";{symbol}", "");
+                }
+            }
+            PlayerSettings.SetScriptingDefineSymbolsForGroup(GetNamedBuildTarget(), defines);
+        }
+
+        [MenuItem("Window/Nefta SDK")]
+        private static void OpenNeftaSDKWindow()
+        {
+            OpenNeftaSDKWindow(null);
         }
 
         private void Initialize()
@@ -69,7 +126,8 @@ namespace Nefta.Core.Editor
             _pages = new Dictionary<string, Action>
             {
                 { "Welcome", OnWelcomePage },
-                { "Utility", OnUtilityPage }
+                { "Core", OnCorePage },
+                { "Utility", OnUtilityPage },
             };
 
             if (_editorModules != null)
@@ -111,7 +169,7 @@ namespace Nefta.Core.Editor
 
         private void OnWelcomePage()
         {
-            GUILayout.Label("Welcome to Nefta Web3 SDK.");
+            GUILayout.Label("Welcome to Nefta SDK.");
             
             if (GUILayout.Button("Getting started"))
             {
@@ -120,6 +178,22 @@ namespace Nefta.Core.Editor
             if (GUILayout.Button("Documentation"))
             {
                 Application.OpenURL("https://neftaweb3.github.io/toolbox-for-unity/api/Nefta.ToolboxSdk.Toolbox.html");
+            }
+        }
+
+        private void OnCorePage()
+        {
+            var applicationId = GUILayout.TextField(_configuration._applicationId, "Application Id");
+            if (applicationId != _configuration._applicationId)
+            {
+                _configuration._applicationId = applicationId;
+                UpdateConfigurationOnDisk();
+            }
+            var isEventRecordingEnabled = GUILayout.Toggle(_configuration._isEventRecordingEnabledOnStart, "Enable event recording on start");
+            if (isEventRecordingEnabled != _configuration._isEventRecordingEnabledOnStart)
+            {
+                _configuration._isEventRecordingEnabledOnStart = isEventRecordingEnabled;
+                UpdateConfigurationOnDisk();
             }
         }
 
@@ -137,7 +211,7 @@ namespace Nefta.Core.Editor
             
             if (GUILayout.Button("Clear cached player In PlayerPrefs"))
             {
-                NeftaCore.ClearPrefs();
+                NeftaPlugin.ClearPrefs();
                 
                 Debug.Log("Cached player data cleared");
             }
@@ -155,38 +229,17 @@ namespace Nefta.Core.Editor
             }
             GUI.backgroundColor = _originalBackgroundColor;
         }
+        
+        public static void UpdateConfigurationOnDisk()
+        {
+            EditorUtility.SetDirty(_configuration);
+            AssetDatabase.SaveAssetIfDirty(_configuration);
+        }
 
         private static BuildTargetGroup GetNamedBuildTarget()
         {
             var target = EditorUserBuildSettings.activeBuildTarget;
             return BuildPipeline.GetBuildTargetGroup(target);
-        }
-        
-        public static string GetDefines()
-        {
-            return PlayerSettings.GetScriptingDefineSymbolsForGroup(GetNamedBuildTarget());
-        }
-
-        public static void SetSymbolEnabled(string symbol, bool enabled)
-        {
-            var defines = GetDefines();
-            if (enabled)
-            {
-                defines += $";{symbol}";
-            }
-            else
-            {
-                var symbolIndex = defines.IndexOf(symbol, StringComparison.InvariantCulture);
-                if (symbolIndex == 0)
-                {
-                    defines = defines.Replace(symbol, "");
-                }
-                else if (symbolIndex > 0)
-                {
-                    defines = defines.Replace($";{symbol}", "");
-                }
-            }
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(GetNamedBuildTarget(), defines);
         }
     }   
 }

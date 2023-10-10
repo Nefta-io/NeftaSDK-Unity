@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection;
 
 namespace Utf8Json
 {
@@ -33,14 +32,6 @@ namespace Utf8Json
                 throw new FormatterNotRegisteredException(typeof(T).FullName + " is not registered in this resolver. resolver:" + resolver.GetType().Name);
             }
 
-            return formatter;
-        }
-
-        public static object GetFormatterDynamic(this IJsonFormatterResolver resolver, Type type)
-        {
-            var methodInfo = typeof(IJsonFormatterResolver).GetRuntimeMethod("GetFormatter", Type.EmptyTypes);
-
-            var formatter = methodInfo.MakeGenericMethod(type).Invoke(resolver, null);
             return formatter;
         }
 

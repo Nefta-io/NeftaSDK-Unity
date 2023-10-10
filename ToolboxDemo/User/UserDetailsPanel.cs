@@ -26,7 +26,7 @@ namespace Nefta.ToolboxDemo.User
         {
             base.Open();
 
-            SetText(Toolbox.Instance.User._address);
+            SetText(Toolbox.Instance.GetUser()._address);
         }
 
         private void SetText(string address)

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Nefta.Core;
+using Nefta.Core.Data;
 using Nefta.ToolboxSdk.Authorization;
 using Nefta.ToolboxSdk.GamerAssets;
 using Nefta.ToolboxSdk.GamerManagement;
@@ -22,6 +23,7 @@ namespace Nefta.ToolboxSdk
         }
 
         private NeftaCore _neftaCore;
+        internal NeftaUser _neftaUser;
 
         public static Toolbox Instance;
 
@@ -35,9 +37,9 @@ namespace Nefta.ToolboxSdk
         public static void Init()
         {
             var neftaCore = NeftaCore.Init();
-            
+
             Instance = new Toolbox();
-            Instance.Configuration = Resources.Load<ToolboxConfiguration>("ToolboxConfiguration");
+            Instance.Configuration = neftaCore.GetConfiguration<ToolboxConfiguration>();
             Instance.RestHelper = new RestHelper();
             Instance.Authorization = new AuthorizationHelper(Instance);
             Instance.GamerManagement = new GamerManagementHelper();
@@ -45,12 +47,26 @@ namespace Nefta.ToolboxSdk
             Instance.Marketplace = new MarketplaceHelper();
             
             Instance._neftaCore = neftaCore;
+            Instance._neftaUser = neftaCore.GetUser();
         }
 
-        public NeftaUser User
+        public NeftaUser GetUser()
         {
-            get => _neftaCore.NeftaUser;
-            set => _neftaCore.NeftaUser = value;
+            return _neftaUser;
+        }
+
+        public void SetUser(NeftaUser neftaUser)
+        {
+            _neftaUser = neftaUser;
+            
+            NeftaCore.Instance.SetUser(_neftaUser);
+        }
+
+        public void SetAddress(string address)
+        {
+            _neftaUser._address = address;
+            
+            NeftaCore.Instance.SetUser(_neftaUser);
         }
         
         private static string GetAssetDirectory()

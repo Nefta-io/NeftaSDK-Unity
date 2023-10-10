@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Utf8Json.Resolvers.Internal;
+﻿using Utf8Json.Resolvers.Internal;
 
 namespace Utf8Json.Resolvers
 {
@@ -20,9 +19,6 @@ namespace Utf8Json.Resolvers.Internal
 #if !NETSTANDARD
             Utf8Json.Unity.UnityResolver.Instance,
 #endif
-            EnumResolver.Default,     // Enum(default => string)
-            DynamicGenericResolver.Instance, // T[], List<T>, etc...
-            AttributeFormatterResolver.Instance // [JsonFormatter]
         };
     }
 
@@ -54,10 +50,15 @@ namespace Utf8Json.Resolvers.Internal
         {
             public static readonly IJsonFormatterResolver Instance = new InnerResolver();
 
-            static readonly IJsonFormatterResolver[] resolvers = StandardResolverHelper.CompositeResolverBase.ToArray();
+            private static IJsonFormatterResolver[] resolvers;
 
             InnerResolver()
             {
+                resolvers = new IJsonFormatterResolver[StandardResolverHelper.CompositeResolverBase.Length];
+                for (var i = 0; i < StandardResolverHelper.CompositeResolverBase.Length; i++)
+                {
+                    resolvers[i] = StandardResolverHelper.CompositeResolverBase[i];
+                }
             }
 
             public IJsonFormatter<T> GetFormatter<T>()

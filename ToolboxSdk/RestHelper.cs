@@ -15,9 +15,9 @@ namespace Nefta.ToolboxSdk
     {
         private readonly List<IJsonFormatterResolver> _resolvers;
         private readonly string _userAgent;
-        
-        private StringBuilder _stringBuilder;
 
+        private StringBuilder _stringBuilder;
+        
         public RestHelper()
         {
             _resolvers = new List<IJsonFormatterResolver>
@@ -28,10 +28,10 @@ namespace Nefta.ToolboxSdk
             };
             
             _userAgent = $"{Application.identifier}/{Application.version} {SystemInfo.deviceModel}";
-            
+
             _stringBuilder = new StringBuilder();
         }
-        
+
         public void SendGetRequest(string endPoint, Action<RestResponse> callback)
         {
             SendGetRequest(endPoint, null, callback);
@@ -94,7 +94,7 @@ namespace Nefta.ToolboxSdk
                 };
                 request.Dispose();
 
-                NeftaCore.Info($"Response statusCode: {response.StatusCode} body:{Encoding.UTF8.GetString(response.Body)}");
+                NeftaCore.Info($"Response statusCode: {response.StatusCode} body:{System.Text.Encoding.UTF8.GetString(response.Body)}");
                 callback?.Invoke(response);
             };
         }
@@ -102,9 +102,9 @@ namespace Nefta.ToolboxSdk
         private void SetHeaders(UnityWebRequest request)
         {
             request.SetRequestHeader("User-Agent", _userAgent);
-            if (NeftaCore.Instance.NeftaUser != null && !string.IsNullOrEmpty(NeftaCore.Instance.NeftaUser._token))
+            if (Toolbox.Instance._neftaUser != null && !string.IsNullOrEmpty(Toolbox.Instance._neftaUser._token))
             {
-                request.SetRequestHeader("Authorization", "Bearer " + NeftaCore.Instance.NeftaUser._token);
+                request.SetRequestHeader("Authorization", "Bearer " + Toolbox.Instance._neftaUser._token);
             }
         }
 

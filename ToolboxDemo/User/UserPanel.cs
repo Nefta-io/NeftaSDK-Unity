@@ -1,4 +1,4 @@
-using Nefta.Core;
+using Nefta.Core.Data;
 using Nefta.ToolboxSdk;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,7 +27,7 @@ namespace Nefta.ToolboxDemo.User
             _interactWithCurrenciesButton.onClick.AddListener(OnInteractWithCurrencies);
             _convertGuestIntoFullUserButton.onClick.AddListener(OnConvertIntoFullUser);
             
-            UpdateText(Toolbox.Instance.User);
+            UpdateText(Toolbox.Instance.GetUser());
         }
 
         private void UpdateText(NeftaUser neftaUser)

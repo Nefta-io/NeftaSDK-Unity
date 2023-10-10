@@ -1,3 +1,4 @@
+using Nefta.Core;
 using Nefta.ToolboxSdk;
 using UnityEngine;
 using UnityEngine.UI;
@@ -47,7 +48,8 @@ namespace Nefta.ToolboxDemo.Authentication
 
         private void OnClose()
         {
-            if (Toolbox.Instance.User == null)
+            var user = Toolbox.Instance.GetUser();
+            if (user != null && !string.IsNullOrEmpty(user._userId))
             {
                 _masterPanel.OpenAuthentication();
             }

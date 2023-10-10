@@ -11,7 +11,6 @@ namespace Nefta.Core.Events
         Unlock,
         Upgrade,
         Shop,
-        Looted,
         Other
     }
     
@@ -29,7 +28,6 @@ namespace Nefta.Core.Events
             { SpendMethod.Unlock, "unlock" },
             { SpendMethod.Upgrade, "upgrade" },
             { SpendMethod.Shop, "shop" },
-            { SpendMethod.Looted, "looted" },
             { SpendMethod.Other, "other" }
         };
         

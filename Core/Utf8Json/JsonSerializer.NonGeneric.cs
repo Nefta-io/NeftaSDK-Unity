@@ -1,7 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using Utf8Json.Internal;
 
 namespace Utf8Json
@@ -250,25 +248,6 @@ namespace Utf8Json
 
                 public CompiledMethods(Type type)
                 {
-                }
-
-                static MethodInfo GetMethod(Type type, string name, Type[] arguments)
-                {
-                    return typeof(JsonSerializer).GetMethods(BindingFlags.Static | BindingFlags.Public)
-                        .Where(x => x.Name == name)
-                        .Single(x =>
-                        {
-                            var ps = x.GetParameters();
-                            if (ps.Length != arguments.Length) return false;
-                            for (int i = 0; i < ps.Length; i++)
-                            {
-                                // null for <T>.
-                                if (arguments[i] == null && ps[i].ParameterType.IsGenericParameter) continue;
-                                if (ps[i].ParameterType != arguments[i]) return false;
-                            }
-                            return true;
-                        })
-                        .MakeGenericMethod(type);
                 }
             }
         }

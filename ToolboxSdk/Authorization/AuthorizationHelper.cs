@@ -1,5 +1,6 @@
 using System;
 using Nefta.Core;
+using Nefta.Core.Data;
 
 namespace Nefta.ToolboxSdk.Authorization
 {
@@ -242,7 +243,7 @@ namespace Nefta.ToolboxSdk.Authorization
         private void SetNeftaUser(NeftaUser user, string email)
         {
             user._email = email;
-            _toolbox.User = user;
+            _toolbox.SetUser(user);
         }
     }
 }

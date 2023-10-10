@@ -1,4 +1,4 @@
-using Nefta.Core;
+using Nefta.Core.Data;
 using Nefta.ToolboxSdk;
 using UnityEngine;
 using UnityEngine.UI;

@@ -8,6 +8,7 @@ using Nefta.ToolboxSdk;
 using Nefta.ToolboxSdk.GamerManagement;
 using Nefta.ToolboxSdk.Nft;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Nefta.ToolboxDemo
 {
@@ -85,10 +86,12 @@ namespace Nefta.ToolboxDemo
             _balancePanel.Init(this, _statusPanel);
 
             OpenAuthentication();
-            if (Toolbox.Instance.User != null)
+            var user = Toolbox.Instance.GetUser();
+            if (user != null && !string.IsNullOrEmpty(user._userId))
             {
                 OpenUser();
             }
+            
         }
 
         public void OpenAuthentication()

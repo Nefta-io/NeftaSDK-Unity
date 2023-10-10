@@ -1,111 +1,129 @@
+using System.Collections.Generic;
+using System.Text;
+using Nefta.Core.Data;
+using Nefta.Core.Events;
+using Nefta.Core.Resolvers;
 using UnityEngine;
+using Utf8Json;
+using Utf8Json.Resolvers;
 
 namespace Nefta.Core
 {
-    public class NeftaCore
+    public class NeftaCore : IJsonFormatterResolver
     {
-        private const string PrefPrefix = "nefta.core.";
-        private const string UsernameKey = "username";
-        private const string UserTokenKey = "user_token";
-        private const string UserIdKey = "user_id";
-        private const string AddressKey = "address";
-        private const string EmailKey = "email";
-        
         public const string BaseUrl = "https://api.Nefta.io/v2.0";
 
+        private List<IJsonFormatterResolver> _resolvers;
         private NeftaUser _neftaUser;
+        private NeftaConfiguration _configuration;
 
         public static NeftaCore Instance;
-        
-        public Analytics Analytics { get; private set; }
 
-        public NeftaUser NeftaUser
-        {
-            get => _neftaUser;
-            set
-            {
-                _neftaUser = value;
-                SaveUser();
-            }
-        }
+        public NeftaPluginWrapper Plugin { get; private set; }
 
         public static NeftaCore Init() 
         {
-            if (Instance == null)
+            if (Instance != null)
             {
-                Instance = new NeftaCore();
-                Instance.Analytics = new Analytics();
+                return Instance;
+            }
 
-                Instance.LoadUser();
+            Instance = new NeftaCore();
 #if UNITY_EDITOR
-                UnityEditor.EditorApplication.playModeStateChanged += Instance.OnPlayModeChange;
+            UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeChange;
 #endif
+            
+            Instance._resolvers = new List<IJsonFormatterResolver>()
+            {
+                StandardResolver.Default,
+                CoreResolvers.Instance
+            };
+            
+            Instance._configuration = Resources.Load<NeftaConfiguration>(NeftaConfiguration.FileName);
+
+            var gameObject = new GameObject("_NeftaPlugin");
+            Instance.Plugin = gameObject.AddComponent<NeftaPluginWrapper>();
+            if (Instance._configuration != null)
+            {
+                Instance.Plugin.Init(Instance._configuration._applicationId);
             }
 
             return Instance;
         }
-        
-        private void LoadUser()
+
+        public NeftaUser GetUser()
         {
-            var usernameKey = PrefPrefix + UsernameKey;
-            if (PlayerPrefs.HasKey(usernameKey))
+            var neftaUser = Plugin.GetUser();
+            if (string.IsNullOrEmpty(neftaUser))
             {
-                _neftaUser = new NeftaUser
-                {
-                    _username = PlayerPrefs.GetString(usernameKey),
-                    _token = PlayerPrefs.GetString(PrefPrefix + UserTokenKey),
-                    _userId = PlayerPrefs.GetString(PrefPrefix + UserIdKey),
-                    _address = PlayerPrefs.GetString(PrefPrefix + AddressKey),
-                    _email = PlayerPrefs.GetString(PrefPrefix + EmailKey)
-                };
+                return null;
             }
-            else if (PlayerPrefs.HasKey(UsernameKey))
-            {
-                _neftaUser = new NeftaUser
-                {
-                    _username = PlayerPrefs.GetString(UsernameKey),
-                    _token = PlayerPrefs.GetString(UserTokenKey),
-                    _userId = PlayerPrefs.GetString(UserIdKey),
-                    _address = PlayerPrefs.GetString(AddressKey),
-                    _email = PlayerPrefs.GetString(EmailKey)
-                };
-                SaveUser();
-            }
-        }
-        
-        public void SaveUser()
-        {
-            PlayerPrefs.SetString(PrefPrefix + UsernameKey, NeftaUser._username);
-            PlayerPrefs.SetString(PrefPrefix + UserTokenKey, NeftaUser._token);
-            PlayerPrefs.SetString(PrefPrefix + UserIdKey, NeftaUser._userId);
-            PlayerPrefs.SetString(PrefPrefix + EmailKey, NeftaUser._email);
-            PlayerPrefs.SetString(PrefPrefix + AddressKey, NeftaUser._address);
+            
+            return Deserialize<NeftaUser>(System.Text.Encoding.UTF8.GetBytes(neftaUser));
         }
 
-        public static void ClearPrefs()
+        public void SetUser(NeftaUser user)
         {
-            if (PlayerPrefs.HasKey(UsernameKey))
+            var neftaUser = System.Text.Encoding.UTF8.GetString(Serialize(user));
+            Plugin.SetUser(neftaUser);
+        }
+
+        public void Record(InterestEvent interestEvent)
+        {
+            var recordedEvent = interestEvent.GetRecordedEvent();
+
+            var recordedEventB = JsonSerializer.Serialize(recordedEvent, CoreResolvers.Instance);
+            var recordedEventS = Encoding.UTF8.GetString(recordedEventB);
+            Info($"Recording event {recordedEventS}");
+            
+            Plugin.Record(recordedEventS);
+        }
+
+        public T GetConfiguration<T>() where T : NeftaModuleConfiguration
+        {
+            foreach (var configuration in _configuration._configurations)
             {
-                PlayerPrefs.DeleteKey(UsernameKey);
-                PlayerPrefs.DeleteKey(UserTokenKey);
-                PlayerPrefs.DeleteKey(UserIdKey);
-                PlayerPrefs.DeleteKey(EmailKey);
-                PlayerPrefs.DeleteKey(AddressKey);
+                if (configuration is T moduleConfiguration)
+                {
+                    return moduleConfiguration;
+                }
             }
 
-            var usernameKey = PrefPrefix + UsernameKey;
-            if (PlayerPrefs.HasKey(usernameKey))
+            return default;
+        }
+        
+        public byte[] Serialize<T>(T body)
+        {
+            return JsonSerializer.Serialize(body, this);
+        }
+        
+        public T Deserialize<T>(byte[] json)
+        {
+            var reader = new JsonReader(json);
+            return JsonSerializer.Deserialize<T>(ref reader, this);
+        }
+        
+        public T Deserialize<T>(byte[] json, int offset)
+        {
+            var reader = new JsonReader(json, offset);
+            return JsonSerializer.Deserialize<T>(ref reader, this);
+        }
+
+        public IJsonFormatter<T> GetFormatter<T>()
+        {
+            foreach (var item in _resolvers)
             {
-                PlayerPrefs.DeleteKey(usernameKey);
-                PlayerPrefs.DeleteKey(PrefPrefix + UserTokenKey);
-                PlayerPrefs.DeleteKey(PrefPrefix + UserIdKey);
-                PlayerPrefs.DeleteKey(PrefPrefix + EmailKey);
-                PlayerPrefs.DeleteKey(PrefPrefix + AddressKey);
+                var f = item.GetFormatter<T>();
+                if (f != null)
+                {
+                    return f;
+                }
             }
+            return null;
         }
         
 #if UNITY_EDITOR
-        private void OnPlayModeChange(UnityEditor.PlayModeStateChange playMode)
+        private static void OnPlayModeChange(UnityEditor.PlayModeStateChange playMode)
         {
             if (playMode == UnityEditor.PlayModeStateChange.EnteredEditMode)
             {
@@ -117,19 +135,19 @@ namespace Nefta.Core
         [System.Diagnostics.Conditional("NEFTA_SDK_DBG")]
         public static void Info(string log)
         {
-            Debug.Log($"[NEFTA] Info: {log}");
+            Debug.Log($"[Nefta]f{Time.frameCount} Info: {log}");
         }
         
         [System.Diagnostics.Conditional("NEFTA_SDK_DBG")]
         public static void Log(string log)
         {
-            Debug.Log($"[NEFTA] Log: {log}");
+            Debug.Log($"[Nefta]f{Time.frameCount} Log: {log}");
         }
         
         [System.Diagnostics.Conditional("NEFTA_SDK_DBG")]
         public static void Warn(string log)
         {
-            Debug.LogWarning($"[NEFTA] Warn: {log}");
+            Debug.LogWarning($"[Nefta]f{Time.frameCount} Warn: {log}");
         }
     }
 }
