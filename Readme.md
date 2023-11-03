@@ -14,4 +14,4 @@ Unity 2020.3 or later
 
 ## Supported platforms
 
-IOS/Android/Webgl
+IOS/Android
