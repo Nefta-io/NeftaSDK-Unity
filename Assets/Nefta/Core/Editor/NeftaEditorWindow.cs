@@ -52,8 +52,15 @@ namespace Nefta.Core.Editor
             {
                 return _configuration;
             }
+
+            if (EditorApplication.isCompiling || EditorApplication.isCompiling)
+            {
+                return null;
+            } 
             
-            _configuration = Resources.Load<NeftaConfiguration>(NeftaConfiguration.FileName);
+            var directory = "Assets/Resources";
+            var assetPath = $"{directory}/{NeftaConfiguration.FileName}.asset";
+            _configuration = AssetDatabase.LoadAssetAtPath<NeftaConfiguration>(assetPath);
             if (_configuration == null)
             {
                 _configuration = CreateInstance<NeftaConfiguration>();
@@ -61,12 +68,11 @@ namespace Nefta.Core.Editor
 
                 _configuration._isEventRecordingEnabledOnStart = true;
                 
-                var directory = "Assets/Resources";
                 if (!Directory.Exists(directory))
                 {
                     Directory.CreateDirectory(directory);
                 }
-                AssetDatabase.CreateAsset(_configuration, $"{directory}/{NeftaConfiguration.FileName}.asset");
+                AssetDatabase.CreateAsset(_configuration, assetPath);
                 AssetDatabase.SaveAssets();
             }
 

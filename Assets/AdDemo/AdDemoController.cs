@@ -9,44 +9,42 @@ namespace AdDemo
     {
         [SerializeField] private RectTransform _contentRect;
         [SerializeField] private RectTransform _placementRect;
-        [SerializeField] private Toggle _autoLoadToggle;
 
         [SerializeField] private PlacementController _placementPrefab;
 
-        private NAds _nads;
+        private NeftaAds _neftaAds;
         private bool _isBannerShown;
         private Dictionary<string, PlacementController> _placementControllers;
         
         private void Awake()
         {
-            _nads = NAds.Init();
-            _nads.SetPublisherUserId("user1");
-            _nads.OnReady = OnReady;
-            _nads.OnBid = OnBid;
-            _nads.OnStartLoad = OnStartLoad;
-            _nads.OnLoadFail = OnLoadFail;
-            _nads.OnLoad = OnLoad;
-            _nads.OnShow = OnShow;
-            _nads.OnClick = OnClick;
-            _nads.OnClose = OnClose;
-            _nads.OnUserRewarded = OnUserRewarded;
-            if (_nads.IsReady)
+            _neftaAds = NeftaAds.Init();
+            _neftaAds.SetPublisherUserId("user1");
+            _neftaAds.OnReady = OnReady;
+            _neftaAds.OnBid = OnBid;
+            _neftaAds.OnStartLoad = OnStartLoad;
+            _neftaAds.OnLoadFail = OnLoadFail;
+            _neftaAds.OnLoad = OnLoad;
+            _neftaAds.OnShow = OnShow;
+            _neftaAds.OnClick = OnClick;
+            _neftaAds.OnClose = OnClose;
+            _neftaAds.OnUserRewarded = OnUserRewarded;
+            if (_neftaAds.IsReady)
             {
-                OnReady(_nads.Placements);
+                OnReady(_neftaAds.Placements);
             }
-            _nads.Enable(true);
-
-            _autoLoadToggle.onValueChanged.AddListener(OnAutoLoadChange);
-            _autoLoadToggle.isOn = true;
+            _neftaAds.Enable(true);
+            
+            _neftaAds.SetPlacementMode(Placement.Type.Banner, Placement.Mode.Continuous);
 
             AdjustOffsets(0);
         }
 
         private void Update()
         {
-            if (_nads != null)
+            if (_neftaAds != null)
             {
-                _nads.OnUpdate();
+                _neftaAds.OnUpdate();
             }
         }
 
@@ -56,56 +54,56 @@ namespace AdDemo
             foreach (var placement in placements)
             {
                 var placementController = Instantiate(_placementPrefab, _placementRect);
-                placementController.SetData(placement.Value, _autoLoadToggle.isOn);
+                placementController.SetData(placement.Value);
                 
                 _placementControllers.Add(placement.Key, placementController);
             }
         }
 
-        private void OnBid(Placement placement)
+        private void OnBid(Placement.Type type, Placement placement)
         {
             _placementControllers[placement._id].OnBid();
         }
         
-        private void OnStartLoad(Placement placement)
+        private void OnStartLoad(Placement.Type type, Placement placement)
         {
             _placementControllers[placement._id].OnStartLoad();
         }
         
-        private void OnLoadFail(Placement placement, string failReason)
+        private void OnLoadFail(Placement.Type type, Placement placement, string failReason)
         {
             _placementControllers[placement._id].OnLoadFail();
         }
 
-        private void OnLoad(Placement placement)
+        private void OnLoad(Placement.Type type, Placement placement)
         {
             _placementControllers[placement._id].OnLoad();
         }
 
-        private void OnShow(Placement placement)
+        private void OnShow(Placement.Type type, Placement placement)
         {
             _placementControllers[placement._id].OnShow();
-            if (placement._type == Placement.ImpressionType.Banner)
+            if (placement._type == Placement.Type.Banner)
             {
                 AdjustOffsets(placement._height);
             }
         }
 
-        private void OnClick(Placement placement)
+        private void OnClick(Placement.Type type, Placement placement)
         {
 
         }
 
-        private void OnClose(Placement placement)
+        private void OnClose(Placement.Type type, Placement placement)
         {
             _placementControllers[placement._id].OnClose();
-            if (placement._type == Placement.ImpressionType.Banner)
+            if (placement._type == Placement.Type.Banner)
             {
                 AdjustOffsets(0);
             }
         }
 
-        private void OnUserRewarded(Placement placement)
+        private void OnUserRewarded(Placement.Type type, Placement placement)
         {
             Debug.Log($"OnUserRewarded for placement {placement._id}");
         }
@@ -114,19 +112,6 @@ namespace AdDemo
         {
             var topObstruction = Screen.height - Screen.safeArea.height - Screen.safeArea.y;
             _contentRect.offsetMax = new Vector2(0, -(topObstruction + bannerHeight) / Screen.height) * ((RectTransform)transform).rect.size.y;
-        }
-
-        private void OnAutoLoadChange(bool isEnabled)
-        {
-            if (_placementControllers == null)
-            {
-                return;
-            }
-            
-            foreach (var placementController in _placementControllers)
-            {
-                placementController.Value.SetAutoLoad(isEnabled);
-            }
         }
     }
 }

@@ -12,49 +12,45 @@
             [weakSelf OnReady](placements);
         }
     };
-    self._plugin.OnBid = ^(Placement *placement, BidResponse *bidResponse) {
+    self._plugin.OnBid = ^(Types type, Placement *placement, BidResponse *bidResponse) {
         if (weakSelf.OnBid != nil) {
-            [weakSelf OnBid](placement, bidResponse);
+            [weakSelf OnBid]((int)type, placement, bidResponse);
         }
     };
-    self._plugin.OnLoadStart = ^(Placement *placement) {
+    self._plugin.OnLoadStart = ^(Types type, Placement *placement) {
         if (weakSelf.OnLoadStart != nil) {
-            [weakSelf OnLoadStart](placement);
+            [weakSelf OnLoadStart]((int)type, placement);
         }
     };
-    self._plugin.OnLoadFail= ^(Placement *placement, NSString *error) {
+    self._plugin.OnLoadFail= ^(Types type, Placement *placement, NSString *error) {
         if (weakSelf.OnLoadFail != nil) {
-            [weakSelf OnLoadFail](placement, error);
+            [weakSelf OnLoadFail]((int)type, placement, error);
         }
     };
-    self._plugin.OnLoad = ^(Placement *placement) {
+    self._plugin.OnLoad = ^(Types type, Placement *placement) {
         if (weakSelf.OnLoad != nil) {
-            [weakSelf OnLoad](placement);
+            [weakSelf OnLoad]((int)type, placement);
         }
     };
-    self._plugin.OnShow = ^(Placement *placement, NSInteger width, NSInteger height) {
+    self._plugin.OnShow = ^(Types type, Placement *placement, NSInteger width, NSInteger height) {
         if (weakSelf.OnShow != nil) {
-            [weakSelf OnShow](placement, width, height);
+            [weakSelf OnShow]((int)type, placement, (int)width, (int)height);
         }
     };
-    self._plugin.OnClose = ^(Placement *placement) {
+    self._plugin.OnClose = ^(Types type, Placement *placement) {
         if (weakSelf.OnClose != nil) {
-            [weakSelf OnClose](placement);
+            [weakSelf OnClose]((int)type, placement);
         }
     };
     [self._plugin InitWithUiView: view appId: appId useMessages: useMessages];
 }
 
-- (void)EnableAds:(Boolean)enable {
-    [self._plugin EnableAdsWithEnable: enable];
+- (NSString *)GetToolboxUser {
+    return [self._plugin GetToolboxUser];
 }
 
-- (NSString *)GetUser {
-    return [self._plugin GetUser];
-}
-
-- (void)SetUser:(NSString*)user {
-    [self._plugin SetUserWithJson: user];
+- (void)SetToolboxUser:(NSString*)user {
+    [self._plugin SetToolboxUserWithJson: user];
 }
 
 - (void)SetPublisherUserId:(NSString *)userId {
@@ -65,32 +61,48 @@
     [self._plugin RecordWithEvent: event];
 }
 
-- (void)Bid:(NSString*)placementId {
-    [self._plugin BidWithId: placementId];
+- (void)EnableAds:(Boolean)enable {
+    [self._plugin EnableAdsWithEnable: enable];
 }
 
-- (void)BidWithAutoLoad:(NSString*)placementId {
-    [self._plugin BidWithAutoLoadWithId: placementId];
+- (void)SetPlacementModeWithType:(int)type mode:(int)mode {
+    [self._plugin SetPlacementModeWithType: type mode: mode];
 }
 
-- (void)Load:(NSString*)placementId {
-    [self._plugin LoadWithId: placementId];
+- (void)SetPlacementModeWithId:(NSString *)pId mode:(int)mode {
+    [self._plugin SetPlacementModeWithId: pId mode: mode];
 }
 
-- (void)Show:(NSString*)placementId {
-    [self._plugin ShowWithId: placementId];
+- (void)BidWithType:(int)type {
+    [self._plugin BidWithType: type];
 }
 
-- (void)Close:(NSString*)placementId {
-    [self._plugin CloseWithId: placementId];
+- (void)BidWithId:(NSString*)pId {
+    [self._plugin BidWithId: pId];
 }
 
-- (void)OnResume {
-    [self._plugin OnResume];
+- (void)LoadWithType:(int)type {
+    [self._plugin LoadWithType: type];
 }
 
-- (void)OnPause {
-    [self._plugin OnPause];
+- (void)LoadWithId:(NSString *)pId {
+    [self._plugin LoadWithId: pId];
+}
+
+- (void)ShowWithType:(int)type {
+    [self._plugin ShowWithType: type];
+}
+
+- (void)ShowWithId:(NSString *)pId {
+    [self._plugin ShowWithId: pId];
+}
+
+- (void)Close {
+    [self._plugin Close];
+}
+
+- (void)CloseWithId:(NSString*)pId {
+    [self._plugin CloseWithId: pId];
 }
 
 - (NSString *)GetMessage {
@@ -105,17 +117,21 @@ extern "C" {
 #endif
     UIViewController* UnityGetGLViewController();
     void * NeftaPlugin_Init(const char *appId);
-    void NeftaPlugin_EnableAds(void *instance, Boolean enable);
-    const char *NeftaPlugin_GetUser(void *instance);
-    void NeftaPlugin_SetUser(void *instance, const char *user);
+    const char *NeftaPlugin_GetToolboxUser(void *instance);
+    void NeftaPlugin_SetToolboxUser(void *instance, const char *user);
     void NeftaPlugin_Record(void *instance, const char *event);
     void NeftaPlugin_SetPublisherUserId(void *instance, const char *userId);
-    void NeftaPlugin_Bid(void *instance, const char *placementId);
-    void NeftaPlugin_Load(void *instance, const char *placementId);
-    void NeftaPlugin_Show(void *instance, const char *placementId);
-    void NeftaPlugin_Close(void *instance, const char *placementId);
-    void NeftaPlugin_OnResume(void *instance);
-    void NeftaPlugin_OnPause(void *instance);
+    void NeftaPlugin_EnableAds(void *instance, Boolean enable);
+    void NeftaPlugin_SetPlacementModeWithType(void *instance, int type, int mode);
+    void NeftaPlugin_SetPlacementModeWithId(void *instance, const char *placementId, int mode);
+    void NeftaPlugin_BidWithType(void *instance, int type);
+    void NeftaPlugin_BidWithId(void *instance, const char *placementId);
+    void NeftaPlugin_LoadWithType(void *instance, int type);
+    void NeftaPlugin_LoadWithId(void *instance, const char *placementId);
+    void NeftaPlugin_ShowWithType(void *instance, int type);
+    void NeftaPlugin_ShowWithId(void *instance, const char *placementId);
+    void NeftaPlugin_Close(void *instance);
+    void NeftaPlugin_CloseWithId(void *instance, const char *placementId);
     const char * NeftaPlugin_GetMessage(void *instance);
 #ifdef __cplusplus
 }
@@ -129,16 +145,10 @@ void * NeftaPlugin_Init(const char *appId)
     return (__bridge_retained void *)plugin;
 }
 
-void NeftaPlugin_EnableAds(void *instance, Boolean enable)
+const char * NeftaPlugin_GetToolboxUser(void *instance)
 {
     UNeftaPlugin *plugin = (__bridge UNeftaPlugin *)instance;
-    [plugin EnableAds: enable];
-}
-
-const char * NeftaPlugin_GetUser(void *instance)
-{
-    UNeftaPlugin *plugin = (__bridge UNeftaPlugin *)instance;
-    NSString *user = [plugin GetUser];
+    NSString *user = [plugin GetToolboxUser];
     if (user == nil) {
         return nil;
     }
@@ -148,10 +158,10 @@ const char * NeftaPlugin_GetUser(void *instance)
     return returnString;
 }
 
-void NeftaPlugin_SetUser(void *instance, const char *user)
+void NeftaPlugin_SetToolboxUser(void *instance, const char *user)
 {
     UNeftaPlugin *plugin = (__bridge UNeftaPlugin *)instance;
-    [plugin SetUser: [NSString stringWithUTF8String: user]];
+    [plugin SetToolboxUser: [NSString stringWithUTF8String: user]];
 }
 
 void NeftaPlugin_Record(void *instance, const char *event)
@@ -160,52 +170,76 @@ void NeftaPlugin_Record(void *instance, const char *event)
     [plugin Record: [NSString stringWithUTF8String: event]];
 }
 
+void NeftaPlugin_EnableAds(void *instance, Boolean enable)
+{
+    UNeftaPlugin *plugin = (__bridge UNeftaPlugin *)instance;
+    [plugin EnableAds: enable];
+}
+
 void NeftaPlugin_SetPublisherUserId(void *instance, const char *userId)
 {
     UNeftaPlugin *plugin = (__bridge UNeftaPlugin *)instance;
     [plugin SetPublisherUserId: [NSString stringWithUTF8String: userId]];
 }
 
-void NeftaPlugin_Bid(void *instance, const char *placementId)
+void NeftaPlugin_SetPlacementModeWithType(void *instance, int type, int mode)
 {
     UNeftaPlugin *plugin = (__bridge UNeftaPlugin *)instance;
-    [plugin Bid: [NSString stringWithUTF8String: placementId]];
+    [plugin SetPlacementModeWithType: type mode: mode];
 }
 
-void NeftaPlugin_BidWithAutoLoad(void *instance, const char *placementId)
+void NeftaPlugin_SetPlacementModeWithId(void *instance, const char *pId, int mode)
 {
     UNeftaPlugin *plugin = (__bridge UNeftaPlugin *)instance;
-    [plugin BidWithAutoLoad: [NSString stringWithUTF8String: placementId]];
+    [plugin SetPlacementModeWithId: [NSString stringWithUTF8String:pId] mode: mode];
 }
 
-void NeftaPlugin_Load(void *instance, const char *placementId)
+void NeftaPlugin_BidWithType(void *instance, int type)
 {
     UNeftaPlugin *plugin = (__bridge UNeftaPlugin *)instance;
-    [plugin Load: [NSString stringWithUTF8String: placementId]];
+    [plugin BidWithType: type];
 }
 
-void NeftaPlugin_Show(void *instance, const char *placementId)
+void NeftaPlugin_BidWithId(void *instance, const char *pId)
 {
     UNeftaPlugin *plugin = (__bridge UNeftaPlugin *)instance;
-    [plugin Show: [NSString stringWithUTF8String: placementId]];
+    [plugin BidWithId: [NSString stringWithUTF8String: pId]];
 }
 
-void NeftaPlugin_Close(void *instance, const char *placementId)
+void NeftaPlugin_LoadWithType(void *instance, int type)
 {
     UNeftaPlugin *plugin = (__bridge UNeftaPlugin *)instance;
-    [plugin Close: [NSString stringWithUTF8String: placementId]];
+    [plugin LoadWithType: type];
 }
 
-void NeftaPlugin_OnResume(void *instance)
+void NeftaPlugin_LoadWithId(void *instance, const char *pId)
 {
     UNeftaPlugin *plugin = (__bridge UNeftaPlugin *)instance;
-    [plugin OnResume];
+    [plugin LoadWithId: [NSString stringWithUTF8String: pId]];
 }
 
-void NeftaPlugin_OnPause(void *instance)
+void NeftaPlugin_ShowWithType(void *instance, int type)
 {
     UNeftaPlugin *plugin = (__bridge UNeftaPlugin *)instance;
-    [plugin OnPause];
+    [plugin ShowWithType: type];
+}
+
+void NeftaPlugin_ShowWithId(void *instance, const char *pId)
+{
+    UNeftaPlugin *plugin = (__bridge UNeftaPlugin *)instance;
+    [plugin ShowWithId: [NSString stringWithUTF8String: pId]];
+}
+
+void NeftaPlugin_Close(void *instance)
+{
+    UNeftaPlugin *plugin = (__bridge UNeftaPlugin *)instance;
+    [plugin Close];
+}
+
+void NeftaPlugin_CloseWithId(void *instance, const char *pId)
+{
+    UNeftaPlugin *plugin = (__bridge UNeftaPlugin *)instance;
+    [plugin CloseWithId: [NSString stringWithUTF8String: pId]];
 }
 
 const char * NeftaPlugin_GetMessage(void *instance)

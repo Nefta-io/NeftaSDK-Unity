@@ -19,6 +19,12 @@ namespace Nefta.ToolboxSdk.Editor
         [InitializeOnLoadMethod]
         private static void Init()
         {
+            if (EditorApplication.isUpdating)
+            {
+                EditorApplication.delayCall += Init;
+                return;
+            }
+            
             var instance = new NeftaToolboxEditor();
             NeftaEditorWindow.RegisterModule(instance);
             var coreConfiguration = NeftaEditorWindow.GetConfiguration();
@@ -38,14 +44,11 @@ namespace Nefta.ToolboxSdk.Editor
                 
                 instance._configuration._preloadStrategy = Toolbox.PreloadStrategies.Full;
             }
-            
+
             if (string.IsNullOrEmpty(instance._configuration._marketplaceId))
             {
-                EditorApplication.delayCall += () =>
-                {
-                    NeftaEditorWindow.OpenNeftaSDKWindow("Toolbox");
-                    instance._showMarketPlaceIdHint = true;
-                };
+                NeftaEditorWindow.OpenNeftaSDKWindow("Toolbox");
+                instance._showMarketPlaceIdHint = true;
             }
         }
 

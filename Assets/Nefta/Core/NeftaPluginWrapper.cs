@@ -13,42 +13,51 @@ namespace Nefta.Core
 #elif UNITY_IOS
         [DllImport ("__Internal")]
         private static extern IntPtr NeftaPlugin_Init(string appId, bool useMessages);
-
-        [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_EnableAds(IntPtr instance, bool enable);
          
         [DllImport ("__Internal")]
-        private static extern string NeftaPlugin_GetUser(IntPtr instance);   
+        private static extern string NeftaPlugin_GetToolboxUser(IntPtr instance);   
 
         [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_SetUser(IntPtr instance, string neftaUser);
+        private static extern void NeftaPlugin_SetToolboxUser(IntPtr instance, string neftaUser);
             
         [DllImport ("__Internal")]
         private static extern void NeftaPlugin_Record(IntPtr instance, string recordedEvent);
             
         [DllImport ("__Internal")]
         private static extern void NeftaPlugin_SetPublisherUserId(IntPtr instance, string publisherUserId);
-            
-        [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_Bid(IntPtr instance, string placementId);
-            
-        [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_BidWithAutoLoad(IntPtr instance, string placementId);
 
         [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_Load(IntPtr instance, string placementId);
+        private static extern void NeftaPlugin_EnableAds(IntPtr instance, bool enable);
+
+        [DllImport ("__Internal")]
+        private static extern void NeftaPlugin_SetPlacementModeWithType(IntPtr instance, int type, int mode);
+
+        [DllImport ("__Internal")]
+        private static extern void NeftaPlugin_SetPlacementModeWithId(IntPtr instance, string pId, int mode);
             
         [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_Show(IntPtr instance, string placementId);
+        private static extern void NeftaPlugin_BidWithType(IntPtr instance, int type);
             
         [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_Close(IntPtr instance, string placementId);
+        private static extern void NeftaPlugin_BidWithId(IntPtr instance, string pId);
+
+        [DllImport ("__Internal")]
+        private static extern void NeftaPlugin_LoadWithType(IntPtr instance, int type);
             
         [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_OnResume(IntPtr instance);
+        private static extern void NeftaPlugin_LoadWithId(IntPtr instance, string pId);
+
+        [DllImport ("__Internal")]
+        private static extern void NeftaPlugin_ShowWithType(IntPtr instance, int type);
+
+        [DllImport ("__Internal")]
+        private static extern void NeftaPlugin_ShowWithId(IntPtr instance, string pId);
             
         [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_OnPause(IntPtr instance);
+        private static extern void NeftaPlugin_Close(IntPtr instance);
+
+        [DllImport ("__Internal")]
+        private static extern void NeftaPlugin_CloseWithId(IntPtr instance, string pid);
             
         [DllImport ("__Internal")]
         private static extern string NeftaPlugin_GetMessage(IntPtr instance);
@@ -81,14 +90,7 @@ namespace Nefta.Core
 #if UNITY_EDITOR
 
 #elif UNITY_IOS
-            if (pause)
-            {
-                NeftaPlugin_OnPause(_plugin);
-            }
-            else
-            {
-                NeftaPlugin_OnResume(_plugin);
-            }
+
 #elif UNITY_ANDROID
             if (pause)
             {
@@ -101,53 +103,30 @@ namespace Nefta.Core
 #endif
         }
 
-        public void EnableAds(bool enable)
+        public void SetToolboxUser(string neftaUser)
         {
 #if UNITY_EDITOR
-            _plugin.EnableAds(enable);
+            _plugin.SetToolboxUser(neftaUser);
 #elif UNITY_IOS
-            NeftaPlugin_EnableAds(_plugin, enable);
+            NeftaPlugin_SetToolboxUser(_plugin, neftaUser);
 #elif UNITY_ANDROID
-            _plugin.Call("EnableAds", enable);
-            _plugin.Call("PrepareRenderer", _unityActivity);
+            _plugin.Call("SetToolboxUser", neftaUser);
 #endif
         }
 
-        public void SetUser(string neftaUser)
-        {
-#if UNITY_EDITOR
-            _plugin.SetUser(neftaUser);
-#elif UNITY_IOS
-            NeftaPlugin_SetUser(_plugin, neftaUser);
-#elif UNITY_ANDROID
-            _plugin.Call("SetUser", neftaUser);
-#endif
-        }
-
-        public string GetUser()
+        public string GetToolboxUser()
         {
             string user = null;
 #if UNITY_EDITOR
-            user = _plugin.GetUser();
+            user = _plugin.GetToolboxUser();
 #elif UNITY_IOS
-            user = NeftaPlugin_GetUser(_plugin);
+            user = NeftaPlugin_GetToolboxUser(_plugin);
 #elif UNITY_ANDROID
-            user = _plugin.Call<string>("GetUser");
+            user = _plugin.Call<string>("GetToolboxUser");
 #endif
             return user;
         }
-
-        public void Record(string recordedEvent)
-        {
-#if UNITY_EDITOR
-            
-#elif UNITY_IOS
-            NeftaPlugin_Record(_plugin, recordedEvent);
-#elif UNITY_ANDROID
-            _plugin.Call("Record", recordedEvent);
-#endif
-        }
-
+        
         public void SetPublisherUserId(string publisherUserId)
         {
 #if UNITY_EDITOR
@@ -159,21 +138,81 @@ namespace Nefta.Core
 #endif
         }
 
-        public void Bid(string id, bool autoLoad)
+        public void Record(string gameEvent)
         {
 #if UNITY_EDITOR
-            NeftaPlugin.Instance.Bid(id, autoLoad);
+            _plugin.Record(gameEvent);
 #elif UNITY_IOS
-            if (autoLoad)
-            {
-                NeftaPlugin_BidWithAutoLoad(_plugin, id);
-            }
-            else
-            {
-                NeftaPlugin_Bid(_plugin, id);
-            }
+            NeftaPlugin_Record(_plugin, gameEvent);
 #elif UNITY_ANDROID
-            _plugin.Call("Bid", id, autoLoad);
+            _plugin.Call("Record", gameEvent);
+#endif
+        }
+        
+        public void EnableAds(bool enable)
+        {
+#if UNITY_EDITOR
+            _plugin.EnableAds(enable);
+#elif UNITY_IOS
+            NeftaPlugin_EnableAds(_plugin, enable);
+#elif UNITY_ANDROID
+            _plugin.Call("EnableAds", enable);
+            _plugin.Call("PrepareRenderer", _unityActivity);
+#endif
+        }
+        
+        public void SetPlacementMode(int type, int mode)
+        {
+#if UNITY_EDITOR
+            _plugin.SetPlacementMode(type, mode);
+#elif UNITY_IOS
+            NeftaPlugin_SetPlacementModeWithType(_plugin, type, mode);
+#elif UNITY_ANDROID
+            _plugin.Call("SetPlacementMode", type, mode);
+#endif
+        }
+        
+        public void SetPlacementMode(string id, int mode)
+        {
+#if UNITY_EDITOR
+            _plugin.SetPlacementMode(id, mode);
+#elif UNITY_IOS
+            NeftaPlugin_SetPlacementModeWithId(_plugin, id, mode);
+#elif UNITY_ANDROID
+            _plugin.Call("SetPlacementMode", id, mode);
+#endif
+        }
+
+        public void Bid(int type)
+        {
+#if UNITY_EDITOR
+            NeftaPlugin.Instance.Bid(type);
+#elif UNITY_IOS
+            NeftaPlugin_BidWithType(_plugin, type);
+#elif UNITY_ANDROID
+            _plugin.Call("Bid", type);
+#endif
+        }
+        
+        public void Bid(string id)
+        {
+#if UNITY_EDITOR
+            NeftaPlugin.Instance.Bid(id);
+#elif UNITY_IOS
+            NeftaPlugin_BidWithId(_plugin, id);
+#elif UNITY_ANDROID
+            _plugin.Call("Bid", id);
+#endif
+        }
+        
+        public void Load(int type)
+        {
+#if UNITY_EDITOR
+            NeftaPlugin.Instance.Load(type);
+#elif UNITY_IOS
+              NeftaPlugin_LoadWithType(_plugin, type);
+#elif UNITY_ANDROID
+            _plugin.Call("Load", type);
 #endif
         }
         
@@ -182,9 +221,20 @@ namespace Nefta.Core
 #if UNITY_EDITOR
             NeftaPlugin.Instance.Load(id);
 #elif UNITY_IOS
-            NeftaPlugin_Load(_plugin, id);
+            NeftaPlugin_LoadWithId(_plugin, id);
 #elif UNITY_ANDROID
             _plugin.Call("Load", id);
+#endif
+        }
+
+        public void Show(int type)
+        {
+#if UNITY_EDITOR
+            _plugin.Show(type);
+#elif UNITY_IOS
+            NeftaPlugin_ShowWithType(_plugin, type);
+#elif UNITY_ANDROID
+            _plugin.Call("Show", type);
 #endif
         }
 
@@ -193,18 +243,29 @@ namespace Nefta.Core
 #if UNITY_EDITOR
             _plugin.Show(id);
 #elif UNITY_IOS
-            NeftaPlugin_Show(_plugin, id);
+            NeftaPlugin_ShowWithId(_plugin, id);
 #elif UNITY_ANDROID
             _plugin.Call("Show", id);
 #endif
         }
 
+        public void Close()
+        {
+#if UNITY_EDITOR
+            _plugin.Close();
+#elif UNITY_IOS
+            NeftaPlugin_Close(_plugin);
+#elif UNITY_ANDROID
+            _plugin.Call("Close");
+#endif
+        }
+        
         public void Close(string id)
         {
 #if UNITY_EDITOR
             _plugin.Close(id);
 #elif UNITY_IOS
-            NeftaPlugin_Close(_plugin, id);
+            NeftaPlugin_CloseWithId(_plugin, id);
 #elif UNITY_ANDROID
             _plugin.Call("Close", id);
 #endif

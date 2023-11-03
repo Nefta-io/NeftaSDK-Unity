@@ -19,9 +19,8 @@ namespace AdDemo
         [SerializeField] private Button _closeButton;
 
         private Placement _placement;
-        private bool _autoLoad;
 
-        public void SetData(Placement placement, bool autoLoad)
+        public void SetData(Placement placement)
         {
             _placement = placement;
 
@@ -33,14 +32,7 @@ namespace AdDemo
             _showButton.onClick.AddListener(OnShowClick);
             _closeButton.onClick.AddListener(OnCloseClick);
 
-            SetAutoLoad(autoLoad);
-            
             SyncUi();
-        }
-
-        public void SetAutoLoad(bool isEnabled)
-        {
-            _autoLoad = isEnabled;
         }
 
         public void OnBid()
@@ -78,7 +70,7 @@ namespace AdDemo
             string bid = "Available Bid:";
             if (_placement._availableBid != null)
             {
-                bid += $"loaded ({_placement._availableBid._price})";
+                bid += $"[available ({_placement._availableBid._price})]";
             }
             _availableBidText.text = bid;
             _bidButtonText.text = _placement._isBidding ? "Bidding" : "Bid";
@@ -89,7 +81,7 @@ namespace AdDemo
             bid = "Buffer Bid:";
             if (_placement._bufferBid != null)
             {
-                bid += $"loaded ({_placement._bufferBid._price})";
+                bid += $"[loaded ({_placement._bufferBid._price})]";
             }
             _bufferBidText.text = bid;
             _showButton.interactable = _placement.CanShow;
@@ -97,7 +89,7 @@ namespace AdDemo
             bid = "Rendered Bid: ";
             if (_placement._renderedBid != null)
             {
-                bid += $"loaded ({_placement._renderedBid._price})";
+                bid += $"[rendering ({_placement._renderedBid._price})]";
             }
             _renderedBidText.text = bid;
             _closeButton.interactable = _placement._renderedBid != null;
@@ -105,22 +97,22 @@ namespace AdDemo
         
         private void OnBidClick()
         {
-            NAds.Instance.Bid(_placement._id, _autoLoad);
+            NeftaAds.Instance.Bid(_placement._id);
         }
 
         private void OnLoadClick()
         {
-            NAds.Instance.Load(_placement._id);
+            NeftaAds.Instance.Load(_placement._id);
         }
         
         private void OnShowClick()
         {
-            NAds.Instance.Show(_placement._id);
+            NeftaAds.Instance.Show(_placement._id);
         }
 
         private void OnCloseClick()
         {
-            NAds.Instance.Close(_placement._id);
+            NeftaAds.Instance.Close(_placement._id);
         }
     }
 }

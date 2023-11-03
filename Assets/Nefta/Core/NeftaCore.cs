@@ -53,7 +53,7 @@ namespace Nefta.Core
 
         public NeftaUser GetUser()
         {
-            var neftaUser = Plugin.GetUser();
+            var neftaUser = Plugin.GetToolboxUser();
             if (string.IsNullOrEmpty(neftaUser))
             {
                 return null;
@@ -65,7 +65,7 @@ namespace Nefta.Core
         public void SetUser(NeftaUser user)
         {
             var neftaUser = System.Text.Encoding.UTF8.GetString(Serialize(user));
-            Plugin.SetUser(neftaUser);
+            Plugin.SetToolboxUser(neftaUser);
         }
 
         public void Record(InterestEvent interestEvent)

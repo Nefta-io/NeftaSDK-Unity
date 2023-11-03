@@ -12,14 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65b9015c844a43649cee70bcdf7b336c, type: 3}
   m_Name: NeftaConfiguration
   m_EditorClassIdentifier: 
-  _applicationId: 5667525748588544
+  _applicationId: 5070114386870272
   _configurations:
-  - rid: 1950461499617312768
+  - rid: 7750192628263550977
   _isEventRecordingEnabledOnStart: 1
   references:
     version: 2
     RefIds:
-    - rid: 1950461499617312768
+    - rid: 7750192628263550977
       type: {class: ToolboxConfiguration, ns: Nefta.ToolboxSdk, asm: Nefta.ToolboxSdk}
       data:
         _marketplaceId: m1-85929

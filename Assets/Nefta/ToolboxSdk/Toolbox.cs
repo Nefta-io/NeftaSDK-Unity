@@ -13,8 +13,6 @@ namespace Nefta.ToolboxSdk
 {
     public class Toolbox : INeftaModule
     {
-        internal const string Version = "2.0.4";
-        
         public enum PreloadStrategies
         {
             None,

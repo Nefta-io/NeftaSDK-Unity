@@ -3,10 +3,10 @@
 #import <NeftaPlugin_iOS/NeftaPlugin_iOS-Swift.h>
 
 typedef void (^OnReadyBlock)(NSDictionary<NSString*, Placement*> *);
-typedef void (^OnChangeBlock)(Placement *);
-typedef void (^OnBidBlock)(Placement*, BidResponse*);
-typedef void (^OnLoadFailBlock)(Placement*, NSString*);
-typedef void (^OnShowBlock)(Placement*, NSInteger, NSInteger);
+typedef void (^OnChangeBlock)(int type, Placement *);
+typedef void (^OnBidBlock)(int type, Placement*, BidResponse*);
+typedef void (^OnLoadFailBlock)(int type, Placement*, NSString*);
+typedef void (^OnShowBlock)(int type, Placement*, NSInteger, NSInteger);
 
 @interface UNeftaPlugin : NSObject
 
@@ -21,18 +21,21 @@ typedef void (^OnShowBlock)(Placement*, NSInteger, NSInteger);
 @property (nonatomic) OnChangeBlock OnReward;
 
 - (void)Init:(UIView*)view appId:(NSString*)appId useMessages:(Boolean)useMessages;
-- (void)EnableAds:(Boolean)enable;
-- (NSString*)GetUser;
-- (void)SetUser:(NSString*)user;
-- (void)SetPublisherUserId:(NSString *)userId;
+- (void)SetToolboxUser:(NSString*)user;
+- (NSString*)GetToolboxUser;
 - (void)Record:(NSString*)event;
-- (void)Bid:(NSString*)placementId;
-- (void)BidWithAutoLoad:(NSString*)placementId;
-- (void)Load:(NSString*)placementId;
-- (void)Show:(NSString*)placementId;
-- (void)Close:(NSString*)placementId;
-- (void)OnResume;
-- (void)OnPause;
+- (void)SetPublisherUserId:(NSString *)userId;
+- (void)EnableAds:(Boolean)enable;
+- (void)SetPlacementModeWithType:(int)type mode:(int)mode;
+- (void)SetPlacementModeWithId:(NSString *)pId mode:(int)mode;
+- (void)BidWithType:(int)type;
+- (void)BidWithId:(NSString *)pId;
+- (void)LoadWithType:(int)type;
+- (void)LoadWithId:(NSString *)pId;
+- (void)ShowWithType:(int)type;
+- (void)ShowWithId:(NSString *)pId;
+- (void)Close;
+- (void)CloseWithId:(NSString*)pId;
 - (NSString*)GetMessage;
 
 @end

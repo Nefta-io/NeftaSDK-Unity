@@ -2,14 +2,22 @@ namespace Nefta.AdSdk
 {
     public class Placement
     {
-        public enum ImpressionType
+        public enum Type
         {
-            Banner,
-            Interstitial,
-            VideoAd
+            Banner = 0,
+            Interstitial = 1,
+            VideoAd = 2
+        }
+
+        public enum Mode
+        {
+            Manual = 0,
+            ScheduledBid = 1,
+            ScheduledLoad = 2,
+            Continuous = 3
         }
         
-        public ImpressionType _type;
+        public Type _type;
         public string _id;
         public int _width;
         public int _height;
@@ -21,11 +29,12 @@ namespace Nefta.AdSdk
         public BidResponse _availableBid;
         public BidResponse _bufferBid;
         public BidResponse _renderedBid;
+        public Mode _mode;
         
-        public bool CanLoad => _availableBid != null && !_isLoading;
+        public bool CanLoad => !_isLoading;
         public bool CanShow => _bufferBid != null && !_isLoading;
 
-        public Placement(ImpressionType type, string id, int width, int height)
+        public Placement(Type type, string id, int width, int height)
         {
             _type = type;
             _id = id;
