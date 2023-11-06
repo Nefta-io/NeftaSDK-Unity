@@ -44,7 +44,7 @@ namespace Nefta.ToolboxSdk.Editor
                 
                 instance._configuration._preloadStrategy = Toolbox.PreloadStrategies.Full;
             }
-
+            
             if (string.IsNullOrEmpty(instance._configuration._marketplaceId))
             {
                 NeftaEditorWindow.OpenNeftaSDKWindow("Toolbox");
