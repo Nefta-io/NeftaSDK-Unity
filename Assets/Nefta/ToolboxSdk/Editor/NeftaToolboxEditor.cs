@@ -32,7 +32,7 @@ namespace Nefta.ToolboxSdk.Editor
             {
                 return;
             }
-            
+
             foreach (var configuration in coreConfiguration._configurations)
             {
                 if (configuration is ToolboxConfiguration)
