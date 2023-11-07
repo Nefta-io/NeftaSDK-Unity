@@ -34,7 +34,7 @@ namespace Nefta.AdSdk
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeChange;
 #endif
-            
+
             return Instance;
         }
 

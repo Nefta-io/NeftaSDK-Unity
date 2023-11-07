@@ -28,7 +28,11 @@ namespace Nefta.ToolboxSdk.Editor
             var instance = new NeftaToolboxEditor();
             NeftaEditorWindow.RegisterModule(instance);
             var coreConfiguration = NeftaEditorWindow.GetConfiguration();
-
+            if (coreConfiguration == null)
+            {
+                return;
+            }
+            
             foreach (var configuration in coreConfiguration._configurations)
             {
                 if (configuration is ToolboxConfiguration)

@@ -840,6 +840,7 @@ PlayerSettings:
   scriptingDefineSymbols:
     Android: NEFTA_SDK_DBG
     Standalone: NEFTA_SDK_DBG
+    iPhone: NEFTA_SDK_DBG
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
