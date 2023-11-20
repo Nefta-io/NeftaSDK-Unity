@@ -4,23 +4,52 @@ using Nefta.Core;
 
 namespace Nefta.AdSdk
 {
-    public class NeftaAds
+    public class NeftaAds : NeftaPluginListener
     {
+        private struct Callback
+        {
+            public enum Actions
+            {
+                OnReady,
+                OnBid,
+                OnLoadStart,
+                OnLoadFail,
+                OnLoad,
+                OnShow,
+                OnBannerChange,
+                OnClick,
+                OnReward,
+                OnClose
+            }
+            
+            public Actions _action;
+            public Placement _placement;
+            public string _data;
+
+            public Callback(Actions action, Placement placement, string data=null)
+            {
+                _action = action;
+                _placement = placement;
+                _data = data;
+            }
+        }
+        
         private NeftaCore _neftaCore;
-        private bool _isBannerEnabled;
+        private Queue<Callback> _callbackQueue;
         public static NeftaAds Instance { get; private set; }
 
         public Dictionary<string, Placement> Placements { get; private set; }
         
         public Action<Dictionary<string, Placement>> OnReady;
-        public Action<Placement.Type, Placement> OnBid;
-        public Action<Placement.Type, Placement> OnStartLoad;
-        public Action<Placement.Type, Placement, string> OnLoadFail;
-        public Action<Placement.Type, Placement> OnLoad;
-        public Action<Placement.Type, Placement> OnShow;
-        public Action<Placement.Type, Placement> OnClick;
-        public Action<Placement.Type, Placement> OnClose;
-        public Action<Placement.Type, Placement> OnUserRewarded;
+        public Action<Placement> OnBid;
+        public Action<Placement> OnLoadStart;
+        public Action<Placement, string> OnLoadFail;
+        public Action<Placement> OnLoad;
+        public Action<Placement> OnShow;
+        public Action<Placement> OnBannerChange;
+        public Action<Placement> OnClick;
+        public Action<Placement> OnClose;
+        public Action<Placement> OnUserRewarded;
         
         public bool IsReady => Placements != null;
 
@@ -30,6 +59,7 @@ namespace Nefta.AdSdk
             {
                 Instance = new NeftaAds();
                 Instance._neftaCore = NeftaCore.Init();
+                Instance._callbackQueue = new Queue<Callback>();
             }
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeChange;
@@ -40,6 +70,7 @@ namespace Nefta.AdSdk
 
         public void Enable(bool enable)
         {
+            _neftaCore.Plugin.RegisterListener(this);
             _neftaCore.Plugin.EnableAds(enable);
         }
 
@@ -48,6 +79,16 @@ namespace Nefta.AdSdk
             _neftaCore.Plugin.SetPublisherUserId(publisherUserId);
         }
 
+        public void EnableBanner(bool enable)
+        {
+            _neftaCore.Plugin.EnableBanner(enable);
+        }
+
+        public void EnableBanner(string placementId, bool enable)
+        {
+            _neftaCore.Plugin.EnableBanner(placementId, enable);
+        }
+        
         public void SetPlacementMode(Placement.Type type, Placement.Mode mode)
         {
             _neftaCore.Plugin.SetPlacementMode((int) type, (int) mode);
@@ -55,7 +96,7 @@ namespace Nefta.AdSdk
 
         public void SetPlacementMode(string placementId, Placement.Mode mode)
         {
-            _neftaCore.Plugin.SetPlacementMode(placementId, (int) mode);
+            _neftaCore.Plugin.SetPlacementMode(placementId, (int) mode);   
         }
 
         public void Bid(Placement.Type type)
@@ -77,7 +118,7 @@ namespace Nefta.AdSdk
         {
             _neftaCore.Plugin.Load((int)type);
         }
-        
+
         public bool IsPlacementReady(Placement.Type type)
         {
             foreach (var placement in Placements)
@@ -121,171 +162,207 @@ namespace Nefta.AdSdk
             _neftaCore.Plugin.Close(placementId);
         }
 
-        public void IOnReady(Dictionary<string, Placement> placements)
+        public override void IOnReady(string configuration)
         {
-            Placements = placements;
-            OnReady?.Invoke(Placements);
+            var responseJ = System.Text.Encoding.UTF8.GetBytes(configuration);
+            var response = NeftaCore.Instance.Deserialize<Core.Data.InitResponse>(responseJ);
+            var placements = new Dictionary<string, Placement>();
+            foreach (var adUnit in response._adUnits)
+            {
+                var width = 0;
+                var height = 0;
+                var adType = Placement.Type.VideoAd;
+                switch (adUnit._type)
+                {
+                    case "rewarded_video":
+                        adType = Placement.Type.VideoAd;
+                        break;
+                    case "interstitial":
+                        adType = Placement.Type.Interstitial;
+                        width = adUnit._width ?? 320;
+                        height = adUnit._height ?? 480;
+                        break;
+                    case "banner":
+                        adType = Placement.Type.Banner;
+                        width = adUnit._width ?? 320;
+                        height = adUnit._height ?? 50;
+                        break;
+                }
+                placements.Add(adUnit._id, new Placement(adType, adUnit._id, width, height));
+            }
+
+            lock (_callbackQueue)
+            {
+                Placements = placements;
+                _callbackQueue.Enqueue(new Callback(Callback.Actions.OnReady, null));
+            }
         }
 
-        public void IOnBid(Placement.Type type, Placement placement)
+        public override void IOnBid(string pId, float price)
         {
-            OnBid?.Invoke(type, placement);
+            lock (_callbackQueue)
+            {
+                if (Placements.TryGetValue(pId, out var placement))
+                {
+                    placement._availableBid = price < 0 ? null : new BidResponse() { _price = price };
+                    placement._isBidding = false;
+                    
+                    _callbackQueue.Enqueue(new Callback(Callback.Actions.OnBid, placement));
+                }
+            }
         }
 
-        public void IOnStartLoad(Placement.Type type, Placement placement)
+        public override void IOnLoadStart(string pId)
         {
-            OnStartLoad?.Invoke(type, placement);
+            lock (_callbackQueue)
+            {
+                if (Placements.TryGetValue(pId, out var placement))
+                {
+                    placement._bufferBid = placement._availableBid;
+                    placement._availableBid = null;
+                    placement._isLoading = true;
+                    
+                    _callbackQueue.Enqueue(new Callback(Callback.Actions.OnLoadStart, placement));
+                }
+            }
+        }
+        
+        public override void IOnLoadFail(string pId, string error)
+        {
+            lock (_callbackQueue)
+            {
+                if (Placements.TryGetValue(pId, out var placement))
+                {
+                    placement._isLoading = false;
+                    placement._bufferBid = null;
+                    
+                    _callbackQueue.Enqueue(new Callback(Callback.Actions.OnLoadFail, placement, error));
+                }
+            }
         }
 
-        public void IOnLoad(Placement.Type type, Placement placement)
+        public override void IOnLoad(string pId)
         {
-            OnLoad?.Invoke(type, placement);
+            lock (_callbackQueue)
+            {
+                if (Placements.TryGetValue(pId, out var placement))
+                {
+                    placement._isLoading = false;
+                    
+                    _callbackQueue.Enqueue(new Callback(Callback.Actions.OnLoad, placement));
+                }
+            }
         }
 
-        public void IOnLoadFail(Placement.Type type, Placement placement, string error)
+        public override void IOnShow(string pId, int width, int height)
         {
-            OnLoadFail?.Invoke(type, placement, error);
+            lock (_callbackQueue)
+            {
+                if (Placements.TryGetValue(pId, out var placement))
+                {
+                    placement._renderedWidth = width;
+                    placement._renderedHeight = height;
+                    placement._renderedBid = placement._bufferBid;
+                    placement._bufferBid = null;
+                    
+                    _callbackQueue.Enqueue(new Callback(Callback.Actions.OnShow, placement));
+                }
+            }
         }
 
-        public void IOnShow(Placement.Type type, Placement placement)
+        public override void IOnBannerChange(string pId, int width, int height)
         {
-            OnShow?.Invoke(type, placement);
+            lock (_callbackQueue)
+            {
+                if (Placements.TryGetValue(pId, out var placement))
+                {
+                    placement._renderedWidth = width;
+                    placement._renderedHeight = height;
+                    
+                    _callbackQueue.Enqueue(new Callback(Callback.Actions.OnBannerChange, placement));
+                }
+            }
         }
 
-        public void IOnClick(Placement.Type type, Placement placement)
+        public override void IOnClick(string pId)
         {
-            OnClick?.Invoke(type, placement);
+            lock (_callbackQueue)
+            {
+                if (Placements.TryGetValue(pId, out var placement))
+                {
+                    placement._isLoading = false;
+                    
+                    _callbackQueue.Enqueue(new Callback(Callback.Actions.OnClick, placement));
+                }
+            }
         }
 
-        public void IOnUserRewarded(Placement.Type type, Placement placement)
+        public override void IOnReward(string pId)
         {
-            OnUserRewarded?.Invoke(type, placement);
+            lock (_callbackQueue)
+            {
+                if (Placements.TryGetValue(pId, out var placement))
+                {
+                    _callbackQueue.Enqueue(new Callback(Callback.Actions.OnReward, placement));
+                }
+            }
         }
 
-        public void IOnClose(Placement.Type type, Placement placement)
+        public override void IOnClose(string pId)
         {
-            OnClose?.Invoke(type, placement);
+            lock (_callbackQueue)
+            {
+                if (Placements.TryGetValue(pId, out var placement))
+                {
+                    placement._renderedWidth = 0;
+                    placement._renderedHeight = 0;
+                    placement._renderedBid = null;
+                    
+                    _callbackQueue.Enqueue(new Callback(Callback.Actions.OnClose, placement));
+                }
+            }
         }
 
         public void OnUpdate()
         {
-            for (;;)
+            lock (_callbackQueue)
             {
-                string message = _neftaCore.Plugin.CheckMessages();
-                if (message == null)
+                while (_callbackQueue.Count > 0)
                 {
-                    return;
-                }
-                
-                string[] parameters;
-                Placement.Type type;
-                Placement placement;
-                switch (message[0])
-                {
-                    case 'r':
-                        var responseJ = System.Text.Encoding.UTF8.GetBytes(message);
-                        var response = NeftaCore.Instance.Deserialize<Core.Data.InitResponse>(responseJ, 1);
-                        Placements = new Dictionary<string, Placement>();
-                        foreach (var adUnit in response._adUnits)
-                        {
-                            var width = 0;
-                            var height = 0;
-                            var adType = Placement.Type.VideoAd;
-                            switch (adUnit._type)
-                            {
-                                case "rewarded_video":
-                                    adType = Placement.Type.VideoAd;
-                                    break;
-                                case "interstitial":
-                                    adType = Placement.Type.Interstitial;
-                                    width = adUnit._width ?? 320;
-                                    height = adUnit._height ?? 480;
-                                    break;
-                                case "banner":
-                                    adType = Placement.Type.Banner;
-                                    width = adUnit._width ?? 320;
-                                    height = adUnit._height ?? 50;
-                                    break;
-                            }
-                            Placements.Add(adUnit._id, new Placement(adType, adUnit._id, width, height));
-                        }
-                        OnReady?.Invoke(Placements);
-                        break;
-                    case 'b':
-                        type = (Placement.Type)(message[1] - '0');
-                        float price = 0;
-                        parameters = message.Substring(2).Split('|');
-                        if (parameters.Length >= 2)
-                        {
-                            price = float.Parse(parameters[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture);
-                        }
-                        
-                        if (Placements.TryGetValue(parameters[0], out placement))
-                        {
-                            placement._availableBid = new BidResponse() { _price = price };
-                            placement._isBidding = false;
-                        }
-
-                        IOnBid(type, placement);
-                        break;
-                    case 'p':
-                        type = (Placement.Type)(message[1] - '0');
-                        if (Placements.TryGetValue(message.Substring(2), out placement))
-                        {
-                            placement._bufferBid = placement._availableBid;
-                            placement._availableBid = null;
-                            placement._isLoading = true;
-                        }
-                        IOnStartLoad(type, placement);
-                        break;
-                    case 'e':
-                        type = (Placement.Type)(message[1] - '0');
-                        parameters = message.Substring(2).Split('|');
-                        if (Placements.TryGetValue(parameters[0], out placement))
-                        {
-                            placement._isLoading = false;
-                            placement._bufferBid = null;
-                        }
-                        IOnLoadFail(type, placement, parameters[1]);
-                        break;
-                    case 'l':
-                        type = (Placement.Type)(message[1] - '0');
-                        if (Placements.TryGetValue(message.Substring(2), out placement))
-                        {
-                            placement._isLoading = false;
-                        }
-                        IOnLoad(type, placement);
-                        break;
-                    case 's':
-                        type = (Placement.Type)(message[1] - '0');
-                        parameters = message.Substring(2).Split('|');
-                        if (Placements.TryGetValue(parameters[0], out placement))
-                        {
-                            placement._renderedWidth = int.Parse(parameters[1], System.Globalization.NumberStyles.Integer);
-                            placement._renderedHeight = int.Parse(parameters[2], System.Globalization.NumberStyles.Integer);
-                            placement._renderedBid = placement._bufferBid;
-                            placement._bufferBid = null;
-                        }
-                        IOnShow(type, placement);
-                        break;
-                    case 'i':
-                        type = (Placement.Type)(message[1] - '0');
-                        Placements.TryGetValue(message.Substring(2), out placement);
-                        IOnClick(type, placement);
-                        break;
-                    case 'c':
-                        type = (Placement.Type)(message[1] - '0');
-                        if (Placements.TryGetValue(message.Substring(2), out placement))
-                        {
-                            placement._renderedBid = null;
-                        }
-                        IOnClose(type, placement);
-                        break;
-                    case 'g':
-                        type = (Placement.Type)(message[1] - '0');
-                        Placements.TryGetValue(message.Substring(1), out placement);
-                        IOnUserRewarded(type, placement);
-                        break;
+                    var callback = _callbackQueue.Dequeue();
+                    switch (callback._action)
+                    {
+                        case Callback.Actions.OnReady:
+                            OnReady?.Invoke(Placements);
+                            break;
+                        case Callback.Actions.OnBid:
+                            OnBid?.Invoke(callback._placement);
+                            break;
+                        case Callback.Actions.OnLoadStart:
+                            OnLoad?.Invoke(callback._placement);
+                            break;
+                        case Callback.Actions.OnLoadFail:
+                            OnLoadFail?.Invoke(callback._placement, callback._data);
+                            break;
+                        case Callback.Actions.OnLoad:
+                            OnLoad?.Invoke(callback._placement);
+                            break;
+                        case Callback.Actions.OnShow:
+                            OnShow?.Invoke(callback._placement);
+                            break;
+                        case Callback.Actions.OnBannerChange:
+                            OnBannerChange?.Invoke(callback._placement);
+                            break;
+                        case Callback.Actions.OnClick:
+                            OnClick?.Invoke(callback._placement);
+                            break;
+                        case Callback.Actions.OnReward:
+                            OnUserRewarded?.Invoke(callback._placement);
+                            break;
+                        case Callback.Actions.OnClose:
+                            OnClose?.Invoke(callback._placement);
+                            break;
+                    }
                 }
             }
         }

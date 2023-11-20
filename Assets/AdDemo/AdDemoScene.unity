@@ -320,7 +320,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _contentRect: {fileID: 1581636823}
   _placementRect: {fileID: 1392637926}
-  _placementPrefab: {fileID: 79335268753346045, guid: 81e9b60e7744b429d894db318e730827, type: 3}
+  _viewPrefab: {fileID: -784039411771542006, guid: 81e9b60e7744b429d894db318e730827, type: 3}
+  _interactivePrefab: {fileID: 8448732042595925774, guid: d5b373a778f4746dc80bdb2cb9a5b66c, type: 3}
 --- !u!1 &1207132370
 GameObject:
   m_ObjectHideFlags: 0

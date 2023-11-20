@@ -43,15 +43,13 @@ namespace Nefta.Core.Resolvers
 
         static CoreResolversGetFormatterHelper()
         {
-            lookup = new global::System.Collections.Generic.Dictionary<Type, int>(7)
+            lookup = new global::System.Collections.Generic.Dictionary<Type, int>(5)
             {
                 {typeof(global::System.Collections.Generic.List<global::Nefta.Core.Data.AdUnit>), 0 },
-                {typeof(global::System.Collections.Generic.List<int>), 1 },
+                {typeof(global::Nefta.Core.Events.RecordedEvent), 1 },
                 {typeof(global::Nefta.Core.Data.AdUnit), 2 },
                 {typeof(global::Nefta.Core.Data.InitResponse), 3 },
                 {typeof(global::Nefta.Core.Data.NeftaUser), 4 },
-                {typeof(global::Nefta.Core.Events.EventPrefs), 5 },
-                {typeof(global::Nefta.Core.Events.RecordedEvent), 6 },
             };
         }
 
@@ -63,12 +61,10 @@ namespace Nefta.Core.Resolvers
             switch (key)
             {
                 case 0: return new global::Utf8Json.Formatters.ListFormatter<global::Nefta.Core.Data.AdUnit>();
-                case 1: return new global::Utf8Json.Formatters.ListFormatter<int>();
+                case 1: return new Nefta.Core.Formatters.Nefta.Core.Events.RecordedEventFormatter();
                 case 2: return new Nefta.Core.Formatters.Nefta.Core.Data.AdUnitFormatter();
                 case 3: return new Nefta.Core.Formatters.Nefta.Core.Data.InitResponseFormatter();
                 case 4: return new Nefta.Core.Formatters.Nefta.Core.Data.NeftaUserFormatter();
-                case 5: return new Nefta.Core.Formatters.Nefta.Core.Events.EventPrefsFormatter();
-                case 6: return new Nefta.Core.Formatters.Nefta.Core.Events.RecordedEventFormatter();
                 default: return null;
             }
         }
@@ -80,6 +76,159 @@ namespace Nefta.Core.Resolvers
 #pragma warning restore 618
 #pragma warning restore 612
 
+#pragma warning disable 618
+#pragma warning disable 612
+#pragma warning disable 414
+#pragma warning disable 219
+#pragma warning disable 168
+
+namespace Nefta.Core.Formatters.Nefta.Core.Events
+{
+    using System;
+    using Utf8Json;
+
+
+    public sealed class RecordedEventFormatter : global::Utf8Json.IJsonFormatter<global::Nefta.Core.Events.RecordedEvent>
+    {
+        readonly global::Utf8Json.Internal.AutomataDictionary ____keyMapping;
+        readonly byte[][] ____stringByteKeys;
+
+        public RecordedEventFormatter()
+        {
+            this.____keyMapping = new global::Utf8Json.Internal.AutomataDictionary()
+            {
+                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("event_type"), 0},
+                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("event_category"), 1},
+                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("event_sub_category"), 2},
+                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("item_name"), 3},
+                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("value"), 4},
+                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("custom_publisher_payload"), 5},
+            };
+
+            this.____stringByteKeys = new byte[][]
+            {
+                JsonWriter.GetEncodedPropertyNameWithBeginObject("event_type"),
+                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("event_category"),
+                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("event_sub_category"),
+                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("item_name"),
+                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("value"),
+                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("custom_publisher_payload"),
+                
+            };
+        }
+
+        public void Serialize(ref JsonWriter writer, global::Nefta.Core.Events.RecordedEvent value, global::Utf8Json.IJsonFormatterResolver formatterResolver)
+        {
+            if (value == null)
+            {
+                writer.WriteNull();
+                return;
+            }
+            
+
+            writer.WriteRaw(this.____stringByteKeys[0]);
+            writer.WriteString(value._type);
+            writer.WriteRaw(this.____stringByteKeys[1]);
+            writer.WriteString(value._category);
+            writer.WriteRaw(this.____stringByteKeys[2]);
+            writer.WriteString(value._subCategory);
+            writer.WriteRaw(this.____stringByteKeys[3]);
+            writer.WriteString(value._itemName);
+            writer.WriteRaw(this.____stringByteKeys[4]);
+            writer.WriteInt64(value._value);
+            writer.WriteRaw(this.____stringByteKeys[5]);
+            writer.WriteString(value._customPayload);
+            
+            writer.WriteEndObject();
+        }
+
+        public global::Nefta.Core.Events.RecordedEvent Deserialize(ref JsonReader reader, global::Utf8Json.IJsonFormatterResolver formatterResolver)
+        {
+            if (reader.ReadIsNull())
+            {
+                return null;
+            }
+            
+
+            var ___type__ = default(string);
+            var ___type__b__ = false;
+            var ___category__ = default(string);
+            var ___category__b__ = false;
+            var ___subCategory__ = default(string);
+            var ___subCategory__b__ = false;
+            var ___itemName__ = default(string);
+            var ___itemName__b__ = false;
+            var ___value__ = default(long);
+            var ___value__b__ = false;
+            var ___customPayload__ = default(string);
+            var ___customPayload__b__ = false;
+
+            var ____count = 0;
+            reader.ReadIsBeginObjectWithVerify();
+            while (!reader.ReadIsEndObjectWithSkipValueSeparator(ref ____count))
+            {
+                var stringKey = reader.ReadPropertyNameSegmentRaw();
+                int key;
+                if (!____keyMapping.TryGetValueSafe(stringKey, out key))
+                {
+                    reader.ReadNextBlock();
+                    goto NEXT_LOOP;
+                }
+
+                switch (key)
+                {
+                    case 0:
+                        ___type__ = reader.ReadString();
+                        ___type__b__ = true;
+                        break;
+                    case 1:
+                        ___category__ = reader.ReadString();
+                        ___category__b__ = true;
+                        break;
+                    case 2:
+                        ___subCategory__ = reader.ReadString();
+                        ___subCategory__b__ = true;
+                        break;
+                    case 3:
+                        ___itemName__ = reader.ReadString();
+                        ___itemName__b__ = true;
+                        break;
+                    case 4:
+                        ___value__ = reader.ReadInt64();
+                        ___value__b__ = true;
+                        break;
+                    case 5:
+                        ___customPayload__ = reader.ReadString();
+                        ___customPayload__b__ = true;
+                        break;
+                    default:
+                        reader.ReadNextBlock();
+                        break;
+                }
+
+                NEXT_LOOP:
+                continue;
+            }
+
+            var ____result = new global::Nefta.Core.Events.RecordedEvent();
+            if(___type__b__) ____result._type = ___type__;
+            if(___category__b__) ____result._category = ___category__;
+            if(___subCategory__b__) ____result._subCategory = ___subCategory__;
+            if(___itemName__b__) ____result._itemName = ___itemName__;
+            if(___value__b__) ____result._value = ___value__;
+            if(___customPayload__b__) ____result._customPayload = ___customPayload__;
+
+            return ____result;
+        }
+    }
+
+}
+
+#pragma warning disable 168
+#pragma warning restore 219
+#pragma warning restore 414
+#pragma warning restore 618
+#pragma warning restore 612
 #pragma warning disable 618
 #pragma warning disable 612
 #pragma warning disable 414
@@ -425,283 +574,6 @@ namespace Nefta.Core.Formatters.Nefta.Core.Data
             if(___username__b__) ____result._username = ___username__;
             if(___email__b__) ____result._email = ___email__;
             if(___address__b__) ____result._address = ___address__;
-
-            return ____result;
-        }
-    }
-
-}
-
-#pragma warning disable 168
-#pragma warning restore 219
-#pragma warning restore 414
-#pragma warning restore 618
-#pragma warning restore 612
-#pragma warning disable 618
-#pragma warning disable 612
-#pragma warning disable 414
-#pragma warning disable 219
-#pragma warning disable 168
-
-namespace Nefta.Core.Formatters.Nefta.Core.Events
-{
-    using System;
-    using Utf8Json;
-
-
-    public sealed class EventPrefsFormatter : global::Utf8Json.IJsonFormatter<global::Nefta.Core.Events.EventPrefs>
-    {
-        readonly global::Utf8Json.Internal.AutomataDictionary ____keyMapping;
-        readonly byte[][] ____stringByteKeys;
-
-        public EventPrefsFormatter()
-        {
-            this.____keyMapping = new global::Utf8Json.Internal.AutomataDictionary()
-            {
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("s"), 0},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("n"), 1},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("p"), 2},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("d"), 3},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("b"), 4},
-            };
-
-            this.____stringByteKeys = new byte[][]
-            {
-                JsonWriter.GetEncodedPropertyNameWithBeginObject("s"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("n"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("p"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("d"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("b"),
-                
-            };
-        }
-
-        public void Serialize(ref JsonWriter writer, global::Nefta.Core.Events.EventPrefs value, global::Utf8Json.IJsonFormatterResolver formatterResolver)
-        {
-            if (value == null)
-            {
-                writer.WriteNull();
-                return;
-            }
-            
-
-            writer.WriteRaw(this.____stringByteKeys[0]);
-            writer.WriteInt32(value._sequenceNumber);
-            writer.WriteRaw(this.____stringByteKeys[1]);
-            writer.WriteInt32(value._sessionNumber);
-            writer.WriteRaw(this.____stringByteKeys[2]);
-            writer.WriteInt64(value._pauseTime);
-            writer.WriteRaw(this.____stringByteKeys[3]);
-            writer.WriteInt64(value._sessionDuration);
-            writer.WriteRaw(this.____stringByteKeys[4]);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Serialize(ref writer, value._batches, formatterResolver);
-            
-            writer.WriteEndObject();
-        }
-
-        public global::Nefta.Core.Events.EventPrefs Deserialize(ref JsonReader reader, global::Utf8Json.IJsonFormatterResolver formatterResolver)
-        {
-            if (reader.ReadIsNull())
-            {
-                return null;
-            }
-            
-
-            var ___sequenceNumber__ = default(int);
-            var ___sequenceNumber__b__ = false;
-            var ___sessionNumber__ = default(int);
-            var ___sessionNumber__b__ = false;
-            var ___pauseTime__ = default(long);
-            var ___pauseTime__b__ = false;
-            var ___sessionDuration__ = default(long);
-            var ___sessionDuration__b__ = false;
-            var ___batches__ = default(global::System.Collections.Generic.List<int>);
-            var ___batches__b__ = false;
-
-            var ____count = 0;
-            reader.ReadIsBeginObjectWithVerify();
-            while (!reader.ReadIsEndObjectWithSkipValueSeparator(ref ____count))
-            {
-                var stringKey = reader.ReadPropertyNameSegmentRaw();
-                int key;
-                if (!____keyMapping.TryGetValueSafe(stringKey, out key))
-                {
-                    reader.ReadNextBlock();
-                    goto NEXT_LOOP;
-                }
-
-                switch (key)
-                {
-                    case 0:
-                        ___sequenceNumber__ = reader.ReadInt32();
-                        ___sequenceNumber__b__ = true;
-                        break;
-                    case 1:
-                        ___sessionNumber__ = reader.ReadInt32();
-                        ___sessionNumber__b__ = true;
-                        break;
-                    case 2:
-                        ___pauseTime__ = reader.ReadInt64();
-                        ___pauseTime__b__ = true;
-                        break;
-                    case 3:
-                        ___sessionDuration__ = reader.ReadInt64();
-                        ___sessionDuration__b__ = true;
-                        break;
-                    case 4:
-                        ___batches__ = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Deserialize(ref reader, formatterResolver);
-                        ___batches__b__ = true;
-                        break;
-                    default:
-                        reader.ReadNextBlock();
-                        break;
-                }
-
-                NEXT_LOOP:
-                continue;
-            }
-
-            var ____result = new global::Nefta.Core.Events.EventPrefs();
-            if(___sequenceNumber__b__) ____result._sequenceNumber = ___sequenceNumber__;
-            if(___sessionNumber__b__) ____result._sessionNumber = ___sessionNumber__;
-            if(___pauseTime__b__) ____result._pauseTime = ___pauseTime__;
-            if(___sessionDuration__b__) ____result._sessionDuration = ___sessionDuration__;
-            if(___batches__b__) ____result._batches = ___batches__;
-
-            return ____result;
-        }
-    }
-
-
-    public sealed class RecordedEventFormatter : global::Utf8Json.IJsonFormatter<global::Nefta.Core.Events.RecordedEvent>
-    {
-        readonly global::Utf8Json.Internal.AutomataDictionary ____keyMapping;
-        readonly byte[][] ____stringByteKeys;
-
-        public RecordedEventFormatter()
-        {
-            this.____keyMapping = new global::Utf8Json.Internal.AutomataDictionary()
-            {
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("event_type"), 0},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("event_category"), 1},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("event_sub_category"), 2},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("item_name"), 3},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("value"), 4},
-                { JsonWriter.GetEncodedPropertyNameWithoutQuotation("custom_publisher_payload"), 5},
-            };
-
-            this.____stringByteKeys = new byte[][]
-            {
-                JsonWriter.GetEncodedPropertyNameWithBeginObject("event_type"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("event_category"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("event_sub_category"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("item_name"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("value"),
-                JsonWriter.GetEncodedPropertyNameWithPrefixValueSeparator("custom_publisher_payload"),
-                
-            };
-        }
-
-        public void Serialize(ref JsonWriter writer, global::Nefta.Core.Events.RecordedEvent value, global::Utf8Json.IJsonFormatterResolver formatterResolver)
-        {
-            if (value == null)
-            {
-                writer.WriteNull();
-                return;
-            }
-            
-
-            writer.WriteRaw(this.____stringByteKeys[0]);
-            writer.WriteString(value._type);
-            writer.WriteRaw(this.____stringByteKeys[1]);
-            writer.WriteString(value._category);
-            writer.WriteRaw(this.____stringByteKeys[2]);
-            writer.WriteString(value._subCategory);
-            writer.WriteRaw(this.____stringByteKeys[3]);
-            writer.WriteString(value._itemName);
-            writer.WriteRaw(this.____stringByteKeys[4]);
-            writer.WriteInt64(value._value);
-            writer.WriteRaw(this.____stringByteKeys[5]);
-            writer.WriteString(value._customPayload);
-            
-            writer.WriteEndObject();
-        }
-
-        public global::Nefta.Core.Events.RecordedEvent Deserialize(ref JsonReader reader, global::Utf8Json.IJsonFormatterResolver formatterResolver)
-        {
-            if (reader.ReadIsNull())
-            {
-                return null;
-            }
-            
-
-            var ___type__ = default(string);
-            var ___type__b__ = false;
-            var ___category__ = default(string);
-            var ___category__b__ = false;
-            var ___subCategory__ = default(string);
-            var ___subCategory__b__ = false;
-            var ___itemName__ = default(string);
-            var ___itemName__b__ = false;
-            var ___value__ = default(long);
-            var ___value__b__ = false;
-            var ___customPayload__ = default(string);
-            var ___customPayload__b__ = false;
-
-            var ____count = 0;
-            reader.ReadIsBeginObjectWithVerify();
-            while (!reader.ReadIsEndObjectWithSkipValueSeparator(ref ____count))
-            {
-                var stringKey = reader.ReadPropertyNameSegmentRaw();
-                int key;
-                if (!____keyMapping.TryGetValueSafe(stringKey, out key))
-                {
-                    reader.ReadNextBlock();
-                    goto NEXT_LOOP;
-                }
-
-                switch (key)
-                {
-                    case 0:
-                        ___type__ = reader.ReadString();
-                        ___type__b__ = true;
-                        break;
-                    case 1:
-                        ___category__ = reader.ReadString();
-                        ___category__b__ = true;
-                        break;
-                    case 2:
-                        ___subCategory__ = reader.ReadString();
-                        ___subCategory__b__ = true;
-                        break;
-                    case 3:
-                        ___itemName__ = reader.ReadString();
-                        ___itemName__b__ = true;
-                        break;
-                    case 4:
-                        ___value__ = reader.ReadInt64();
-                        ___value__b__ = true;
-                        break;
-                    case 5:
-                        ___customPayload__ = reader.ReadString();
-                        ___customPayload__b__ = true;
-                        break;
-                    default:
-                        reader.ReadNextBlock();
-                        break;
-                }
-
-                NEXT_LOOP:
-                continue;
-            }
-
-            var ____result = new global::Nefta.Core.Events.RecordedEvent();
-            if(___type__b__) ____result._type = ___type__;
-            if(___category__b__) ____result._category = ___category__;
-            if(___subCategory__b__) ____result._subCategory = ___subCategory__;
-            if(___itemName__b__) ____result._itemName = ___itemName__;
-            if(___value__b__) ____result._value = ___value__;
-            if(___customPayload__b__) ____result._customPayload = ___customPayload__;
 
             return ____result;
         }

@@ -102,12 +102,6 @@ namespace Nefta.Core
             var reader = new JsonReader(json);
             return JsonSerializer.Deserialize<T>(ref reader, this);
         }
-        
-        public T Deserialize<T>(byte[] json, int offset)
-        {
-            var reader = new JsonReader(json, offset);
-            return JsonSerializer.Deserialize<T>(ref reader, this);
-        }
 
         public IJsonFormatter<T> GetFormatter<T>()
         {
