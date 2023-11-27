@@ -69,7 +69,7 @@ namespace Nefta.Core
         }
 
         [DllImport ("__Internal")]
-        private static extern IntPtr NeftaPlugin_Init(string appId, bool useMessages);
+        private static extern IntPtr NeftaPlugin_Init(string appId);
 
         [DllImport ("__Internal")]
         private static extern void NeftaPlugin_RegisterCallbacks(OnReadyDelegate onReady, OnBidDelegate onBid, OnChangeDelegate onLoadStart, OnLoadFailDelegate onLoadFail, OnChangeDelegate onLoad, OnShowDelegate onShow, OnShowDelegate onBannerChange, OnChangeDelegate onClick, OnChangeDelegate onReward, OnChangeDelegate onClose);
@@ -137,7 +137,7 @@ namespace Nefta.Core
 #if UNITY_EDITOR
             _plugin = NeftaPlugin.Init(gameObject, appId);
 #elif UNITY_IOS
-            _plugin = NeftaPlugin_Init(appId, true);
+            _plugin = NeftaPlugin_Init(appId);
 #elif UNITY_ANDROID
             AndroidJavaClass unityClass = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
             _unityActivity = unityClass.GetStatic<AndroidJavaObject>("currentActivity");

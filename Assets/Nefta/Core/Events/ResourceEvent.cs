@@ -16,7 +16,7 @@ namespace Nefta.Core.Events
         Other
     }
 
-    public class ResourceEvent : InterestEvent
+    public class ResourceEvent : GameEvent
     {
         private static readonly Dictionary<Category, string> CategoryToString = new Dictionary<Category, string>()
         {

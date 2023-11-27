@@ -35,7 +35,7 @@ namespace Nefta.Core.Events
     /// <summary>
     /// Event for recording player progress
     /// </summary>
-    public class ProgressionEvent : InterestEvent
+    public class ProgressionEvent : GameEvent
     {
         private static readonly Dictionary<Status, string> ProgressionToString = new Dictionary<Status, string>()
         {

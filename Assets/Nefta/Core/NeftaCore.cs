@@ -68,9 +68,9 @@ namespace Nefta.Core
             Plugin.SetToolboxUser(neftaUser);
         }
 
-        public void Record(InterestEvent interestEvent)
+        public void Record(GameEvent gameEvent)
         {
-            var recordedEvent = interestEvent.GetRecordedEvent();
+            var recordedEvent = gameEvent.GetRecordedEvent();
 
             var recordedEventB = JsonSerializer.Serialize(recordedEvent, CoreResolvers.Instance);
             var recordedEventS = Encoding.UTF8.GetString(recordedEventB);
