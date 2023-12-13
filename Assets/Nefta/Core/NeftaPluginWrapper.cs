@@ -69,6 +69,9 @@ namespace Nefta.Core
         }
 
         [DllImport ("__Internal")]
+        private static extern void NeftaPlugin_EnableLogging(bool enable);
+
+        [DllImport ("__Internal")]
         private static extern IntPtr NeftaPlugin_Init(string appId);
 
         [DllImport ("__Internal")]
@@ -79,7 +82,10 @@ namespace Nefta.Core
 
         [DllImport ("__Internal")]
         private static extern void NeftaPlugin_SetToolboxUser(IntPtr instance, string neftaUser);
-            
+
+        [DllImport ("__Internal")]
+        private static extern IntPtr NeftaPlugin_SetCustomBatchSize(IntPtr instance, int newBatchSize);
+
         [DllImport ("__Internal")]
         private static extern void NeftaPlugin_Record(IntPtr instance, string recordedEvent);
             
@@ -131,6 +137,15 @@ namespace Nefta.Core
         private AndroidJavaObject _plugin;
         private AndroidJavaObject _unityActivity;
 #endif
+        
+        public static void EnableLogging(bool enable)
+        {
+#if UNITY_EDITOR
+            NeftaPlugin.EnableLogging(enable);
+#elif UNITY_IOS
+            NeftaPlugin_EnableLogging(enable);
+#endif
+        }
 
         public void Init(string appId)
         {
@@ -147,6 +162,20 @@ namespace Nefta.Core
 #endif
             DontDestroyOnLoad(gameObject);
         }
+        
+#if !UNITY_EDITOR && UNITY_ANDROID
+        private void OnApplicationPause(bool pause)
+        {
+            if (pause)
+            {
+                _plugin.Call("OnPause");
+            }
+            else
+            {
+                 _plugin.Call("OnResume");
+            }
+        }
+#endif
 
         public void RegisterListener(NeftaPluginListener listener)
         {
@@ -157,31 +186,6 @@ namespace Nefta.Core
             NeftaPlugin_RegisterCallbacks(OnReady, OnBid, OnLoadStart, OnLoadFail, OnLoad, OnShow, OnBannerChange, OnClick, OnClose, OnReward);
 #elif UNITY_ANDROID
             _plugin.Call("SetListener", listener);
-#endif
-        }
-
-        private void OnApplicationPause(bool pause)
-        {
-#if UNITY_EDITOR
-            if (pause)
-            {
-                _plugin.OnPause();
-            }
-            else
-            {
-                _plugin.OnResume();
-            }
-#elif UNITY_IOS
-
-#elif UNITY_ANDROID
-            if (pause)
-            {
-                _plugin.Call("OnPause");
-            }
-            else
-            {
-                _plugin.Call("OnResume");
-            }
 #endif
         }
 
@@ -217,6 +221,17 @@ namespace Nefta.Core
             NeftaPlugin_SetPublisherUserId(_plugin, publisherUserId);
 #elif UNITY_ANDROID
             _plugin.Call("SetPublisherUserId", publisherUserId);
+#endif
+        }
+        
+        public void SetCustomBatchSize(int newBatchSize)
+        {
+#if UNITY_EDITOR
+            _plugin.SetCustomBatchSize(newBatchSize);
+#elif UNITY_IOS
+            NeftaPlugin_SetCustomBatchSize(_plugin, newBatchSize);
+#elif UNITY_ANDROID
+            _plugin.Call("SetCustomBatchSize", newBatchSize);
 #endif
         }
 

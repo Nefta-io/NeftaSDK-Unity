@@ -20,10 +20,12 @@ extern "C" {
     typedef void (*OnLoadFail)(const char *pId, const char *error);
     typedef void (*OnShow)(const char *pId, int width, int height);
     
+    void EnableLogging(bool enable);
     void * NeftaPlugin_Init(const char *appId);
     void NeftaPlugin_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoadStart, OnLoadFail onLoadFail, OnChange onLoad, OnShow onShow, OnShow onBannerChange, OnChange onClick, OnChange onClose, OnChange onReward);
     const char *NeftaPlugin_GetToolboxUser(void *instance);
     void NeftaPlugin_SetToolboxUser(void *instance, const char *user);
+    void NeftaPlugin_SetCustomBatchSize(void *instance, int newBatchSize);
     void NeftaPlugin_Record(void *instance, const char *event);
     void NeftaPlugin_SetPublisherUserId(void *instance, const char *userId);
     void NeftaPlugin_EnableAds(void *instance, Boolean enable);
@@ -44,6 +46,10 @@ extern "C" {
 #endif
 
 NeftaPlugin_iOS *_plugin;
+
+void NeftaPlugin_EnableLogging(bool enable) {
+    [NeftaPlugin_iOS EnableLogging: enable];
+}
 
 void * NeftaPlugin_Init(const char *appId)
 {
@@ -118,6 +124,11 @@ void NeftaPlugin_SetToolboxUser(void *instance, const char *user)
 void NeftaPlugin_Record(void *instance, const char *event)
 {
     [_plugin RecordWithEvent: [NSString stringWithUTF8String: event]];
+}
+
+void NeftaPlugin_SetCustomBatchSize(void *instance, int newBatchSize)
+{
+    [_plugin SetCustomBatchSize: newBatchSize];
 }
 
 void NeftaPlugin_EnableAds(void *instance, Boolean enable)
