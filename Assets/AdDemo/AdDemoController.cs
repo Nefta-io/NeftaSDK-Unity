@@ -20,6 +20,8 @@ namespace AdDemo
         
         private void Awake()
         {
+            NeftaCore.EnableLogging(true);
+            
             _neftaAds = NeftaAds.Init();
             _neftaAds.SetPublisherUserId("user1");
             _neftaAds.OnReady = OnReady;

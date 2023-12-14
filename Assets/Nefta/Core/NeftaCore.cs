@@ -21,6 +21,11 @@ namespace Nefta.Core
 
         public NeftaPluginWrapper Plugin { get; private set; }
 
+        public static void EnableLogging(bool enable)
+        {
+            NeftaPluginWrapper.EnableLogging(enable);
+        }
+        
         public static NeftaCore Init() 
         {
             if (Instance != null)
@@ -59,23 +64,20 @@ namespace Nefta.Core
                 return null;
             }
             
-            return Deserialize<NeftaUser>(System.Text.Encoding.UTF8.GetBytes(neftaUser));
+            return Deserialize<NeftaUser>(Encoding.UTF8.GetBytes(neftaUser));
         }
 
         public void SetUser(NeftaUser user)
         {
-            var neftaUser = System.Text.Encoding.UTF8.GetString(Serialize(user));
+            var neftaUser = Encoding.UTF8.GetString(Serialize(user));
             Plugin.SetToolboxUser(neftaUser);
         }
 
         public void Record(GameEvent gameEvent)
         {
             var recordedEvent = gameEvent.GetRecordedEvent();
-
             var recordedEventB = JsonSerializer.Serialize(recordedEvent, CoreResolvers.Instance);
             var recordedEventS = Encoding.UTF8.GetString(recordedEventB);
-            Info($"Recording event {recordedEventS}");
-            
             Plugin.Record(recordedEventS);
         }
 
