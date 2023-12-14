@@ -339,7 +339,7 @@ namespace Nefta.AdSdk
                             OnBid?.Invoke(callback._placement);
                             break;
                         case Callback.Actions.OnLoadStart:
-                            OnLoad?.Invoke(callback._placement);
+                            OnLoadStart?.Invoke(callback._placement);
                             break;
                         case Callback.Actions.OnLoadFail:
                             OnLoadFail?.Invoke(callback._placement, callback._data);
