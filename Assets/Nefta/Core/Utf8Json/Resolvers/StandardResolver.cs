@@ -13,13 +13,7 @@ namespace Utf8Json.Resolvers.Internal
 {
     internal static class StandardResolverHelper
     {
-        internal static readonly IJsonFormatterResolver[] CompositeResolverBase = new[]
-        {
-            BuiltinResolver.Instance, // Builtin
-#if !NETSTANDARD
-            Utf8Json.Unity.UnityResolver.Instance,
-#endif
-        };
+        internal static readonly IJsonFormatterResolver[] CompositeResolverBase = new[] { BuiltinResolver.Instance };
     }
 
     internal sealed class DefaultStandardResolver : IJsonFormatterResolver

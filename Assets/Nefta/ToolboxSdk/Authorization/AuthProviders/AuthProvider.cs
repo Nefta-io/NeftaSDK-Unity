@@ -136,13 +136,30 @@ namespace Nefta.ToolboxSdk.Authorization.AuthProviders
         public void OnDeepLinkActivated(string deepLink)
         {
             string queryString = new Uri(deepLink).Query;
-            var parameters = System.Web.HttpUtility.ParseQueryString(queryString);
-            var code = parameters.Get("code");
-            var state = parameters.Get("state");
+            var code = GetQueryParameter(queryString, "code");
+            var state = GetQueryParameter(queryString, "state");
+            
             if (!string.IsNullOrEmpty(code) && state.StartsWith(TargetRedirectLink))
             {
                 ExchangeCodeForToken(code);
             }
+        }
+
+        private string GetQueryParameter(string query, string parameterName)
+        {
+            var startIndex = query.IndexOf(parameterName, StringComparison.InvariantCulture);
+            if (startIndex >= 0)
+            {
+                startIndex += parameterName.Length + 1;
+                var endIndex = query.IndexOf('&', startIndex);
+                if (endIndex < 0)
+                {
+                    endIndex = query.Length;
+                }
+                return query.Substring(startIndex, endIndex - startIndex);
+            }
+
+            return null;
         }
 
         private void ExchangeCodeForToken(object codeObject)
