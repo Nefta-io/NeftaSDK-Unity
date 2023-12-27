@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Nefta.AdSdk;
 using Nefta.Core;
-using Nefta.Core.Events;
 using UnityEngine;
 
 namespace AdDemo
@@ -23,7 +22,6 @@ namespace AdDemo
             NeftaCore.EnableLogging(true);
             
             _neftaAds = NeftaAds.Init();
-            _neftaAds.SetPublisherUserId("user1");
             _neftaAds.OnReady = OnReady;
             _neftaAds.OnBid = OnBid;
             _neftaAds.OnLoadStart = OnLoadStart;
@@ -36,14 +34,6 @@ namespace AdDemo
             _neftaAds.Enable(true);
             
             _neftaAds.EnableBanner(true);
-
-            NeftaCore.Instance.Record(new ReceiveEvent()
-            {
-                _resourceCategory = ResourceCategory.CosmeticItem,
-                _method = ReceiveMethod.Shop,
-                _name = "tesfdunit",
-                _quantity = 3
-            });
 
             AdjustOffsets(0);
         }

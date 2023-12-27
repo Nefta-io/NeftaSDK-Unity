@@ -301,17 +301,6 @@ namespace Nefta.Core
             _plugin.Call("Bid", id);
 #endif
         }
-        
-        public void Load(int type)
-        {
-#if UNITY_EDITOR
-            NeftaPlugin.Instance.Load(type);
-#elif UNITY_IOS
-              NeftaPlugin_LoadWithType(_plugin, type);
-#elif UNITY_ANDROID
-            _plugin.Call("Load", type);
-#endif
-        }
 
         public void EnableBanner(bool isEnabled)
         {
@@ -332,6 +321,17 @@ namespace Nefta.Core
             NeftaPlugin_EnableBannerWithId(_plugin, id, isEnabled);
 #elif UNITY_ANDROID
             _plugin.Call("EnableBanner", id, isEnabled);
+#endif
+        }
+        
+        public void Load(int type)
+        {
+#if UNITY_EDITOR
+            NeftaPlugin.Instance.Load(type);
+#elif UNITY_IOS
+            NeftaPlugin_LoadWithType(_plugin, type);
+#elif UNITY_ANDROID
+            _plugin.Call("Load", type);
 #endif
         }
         

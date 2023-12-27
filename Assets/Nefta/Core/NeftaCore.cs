@@ -4,6 +4,7 @@ using Nefta.Core.Data;
 using Nefta.Core.Events;
 using Nefta.Core.Resolvers;
 using UnityEngine;
+using UnityEngine.Assertions;
 using Utf8Json;
 using Utf8Json.Resolvers;
 
@@ -45,13 +46,11 @@ namespace Nefta.Core
             };
             
             Instance._configuration = Resources.Load<NeftaConfiguration>(NeftaConfiguration.FileName);
-
+            Assert.IsNotNull(Instance._configuration, "Missing NeftaConfiguration ScriptableObject");
+            
             var gameObject = new GameObject("_NeftaPlugin");
             Instance.Plugin = gameObject.AddComponent<NeftaPluginWrapper>();
-            if (Instance._configuration != null)
-            {
-                Instance.Plugin.Init(Instance._configuration._applicationId);
-            }
+            Instance.Plugin.Init(Instance._configuration._applicationId);
 
             return Instance;
         }

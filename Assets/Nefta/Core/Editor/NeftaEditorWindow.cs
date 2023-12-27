@@ -79,12 +79,14 @@ namespace Nefta.Core.Editor
             return _configuration;
         }
 
-        public static void OpenNeftaSDKWindow(string page)
+        private static void OpenNeftaSDKWindow(string page)
         {
             _instance = (NeftaEditorWindow)GetWindow(typeof(NeftaEditorWindow), true, "Nefta SDK");
             _instance.minSize = new Vector2(580f, 280f);
             _instance._selectedPage = page ?? "Welcome";
             _instance.Show();
+
+            GetConfiguration();
         }
 
         public static string GetDefines()
@@ -179,17 +181,13 @@ namespace Nefta.Core.Editor
             
             if (GUILayout.Button("Getting started"))
             {
-                Application.OpenURL("https://docs.nefta.io/docs/neftaunity-sdk");    
-            }
-            if (GUILayout.Button("Documentation"))
-            {
-                Application.OpenURL("https://neftaweb3.github.io/toolbox-for-unity/api/Nefta.ToolboxSdk.Toolbox.html");
+                Application.OpenURL("https://docs-adnetwork.nefta.io/docs/nefta-unity-ad-sdk");    
             }
         }
 
         private void OnCorePage()
         {
-            var applicationId = GUILayout.TextField(_configuration._applicationId, "Application Id");
+            var applicationId = EditorGUILayout.TextField("Application Id", _configuration._applicationId);
             if (applicationId != _configuration._applicationId)
             {
                 _configuration._applicationId = applicationId;

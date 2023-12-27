@@ -11,8 +11,7 @@ namespace Nefta.ToolboxSdk.Editor
         private const string MetaMaskIntegrationSymbol = "NEFTA_INTEGRATION_METAMASK";
         
         private ToolboxConfiguration _configuration;
-
-        private bool _showMarketPlaceIdHint;
+        
         private bool _isMetaMaskIntegration;
         private GUIStyle _multiLineLabelStyle;
         
@@ -48,12 +47,6 @@ namespace Nefta.ToolboxSdk.Editor
                 
                 instance._configuration._preloadStrategy = Toolbox.PreloadStrategies.Full;
             }
-            
-            if (string.IsNullOrEmpty(instance._configuration._marketplaceId))
-            {
-                NeftaEditorWindow.OpenNeftaSDKWindow("Toolbox");
-                instance._showMarketPlaceIdHint = true;
-            }
         }
 
         public void AddPages(Dictionary<string, Action> pages)
@@ -68,7 +61,7 @@ namespace Nefta.ToolboxSdk.Editor
         
         private void OnToolboxPage()
         {
-            if (_showMarketPlaceIdHint)
+            if (String.IsNullOrEmpty(_configuration._marketplaceId))
             {
                 GUILayout.Label("To get started, configure your marketplaceId (starting with \"m-\") when initializing the Toolbox:",
                     _multiLineLabelStyle);
