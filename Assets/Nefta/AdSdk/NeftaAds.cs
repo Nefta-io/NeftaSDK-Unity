@@ -60,6 +60,7 @@ namespace Nefta.AdSdk
                 Instance = new NeftaAds();
                 Instance._neftaCore = NeftaCore.Init();
                 Instance._callbackQueue = new Queue<Callback>();
+                Instance.Placements = new Dictionary<string, Placement>();
             }
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeChange;
@@ -166,34 +167,33 @@ namespace Nefta.AdSdk
         {
             var responseJ = System.Text.Encoding.UTF8.GetBytes(configuration);
             var response = NeftaCore.Instance.Deserialize<Core.Data.InitResponse>(responseJ);
-            var placements = new Dictionary<string, Placement>();
-            foreach (var adUnit in response._adUnits)
-            {
-                var width = 0;
-                var height = 0;
-                var adType = Placement.Type.VideoAd;
-                switch (adUnit._type)
-                {
-                    case "rewarded_video":
-                        adType = Placement.Type.VideoAd;
-                        break;
-                    case "interstitial":
-                        adType = Placement.Type.Interstitial;
-                        width = adUnit._width ?? 320;
-                        height = adUnit._height ?? 480;
-                        break;
-                    case "banner":
-                        adType = Placement.Type.Banner;
-                        width = adUnit._width ?? 320;
-                        height = adUnit._height ?? 50;
-                        break;
-                }
-                placements.Add(adUnit._id, new Placement(adType, adUnit._id, width, height));
-            }
-
+     
             lock (_callbackQueue)
             {
-                Placements = placements;
+                Placements.Clear();
+                foreach (var adUnit in response._adUnits)
+                {
+                    var width = 0;
+                    var height = 0;
+                    var adType = Placement.Type.VideoAd;
+                    switch (adUnit._type)
+                    {
+                        case "rewarded_video":
+                            adType = Placement.Type.VideoAd;
+                            break;
+                        case "interstitial":
+                            adType = Placement.Type.Interstitial;
+                            width = adUnit._width ?? 320;
+                            height = adUnit._height ?? 480;
+                            break;
+                        case "banner":
+                            adType = Placement.Type.Banner;
+                            width = adUnit._width ?? 320;
+                            height = adUnit._height ?? 50;
+                            break;
+                    }
+                    Placements.Add(adUnit._id, new Placement(adType, adUnit._id, width, height));
+                }
                 _callbackQueue.Enqueue(new Callback(Callback.Actions.OnReady, null));
             }
         }

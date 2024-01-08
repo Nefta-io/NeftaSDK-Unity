@@ -8,6 +8,7 @@
 #import <Foundation/Foundation.h>
 #import <WebKit/WebKit.h>
 #import <NeftaSDK/NeftaSDK-Swift.h>
+#import <UIKit/UIKit.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -84,11 +85,15 @@ void NeftaPlugin_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoad
     };
     _plugin.IOnShow = ^void(NSString * _Nonnull pId, NSInteger width, NSInteger height) {
         const char *cPId = [pId UTF8String];
-        onShow(cPId, (int)width, (int) height);
+        int w = [UIScreen mainScreen].scale * width;
+        int h = [UIScreen mainScreen].scale * height;
+        onShow(cPId, w, h);
     };
     _plugin.IOnBannerChange = ^void(NSString * _Nonnull pId, NSInteger width, NSInteger height) {
         const char *cPId = [pId UTF8String];
-        onBannerChange(cPId, (int)width, (int) height);
+        int w = [UIScreen mainScreen].scale * width;
+        int h = [UIScreen mainScreen].scale * height;
+        onBannerChange(cPId, w, h);
     };
     _plugin.IOnClick = ^void(NSString * _Nonnull pId) {
         const char *cPId = [pId UTF8String];
