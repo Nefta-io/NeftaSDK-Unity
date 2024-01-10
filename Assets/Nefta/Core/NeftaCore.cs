@@ -48,6 +48,11 @@ namespace Nefta.Core
             Instance._configuration = Resources.Load<NeftaConfiguration>(NeftaConfiguration.FileName);
             Assert.IsNotNull(Instance._configuration, "Missing NeftaConfiguration ScriptableObject");
             
+            if (Instance._configuration._isLoggingEnabled)
+            {
+                EnableLogging(true);
+            }
+            
             var gameObject = new GameObject("_NeftaPlugin");
             Instance.Plugin = gameObject.AddComponent<NeftaPluginWrapper>();
             Instance.Plugin.Init(Instance._configuration._applicationId);

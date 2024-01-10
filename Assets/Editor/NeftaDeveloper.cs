@@ -1,4 +1,5 @@
 using System;
+using Nefta.Core.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,12 +10,14 @@ namespace Editor
         [MenuItem("Nefta developer/Export packages/Ad SDK")]
         private static void ExportAdSdkPackage()
         {
+            NeftaEditorWindow.EnableLogging(true);
+            
             var assetPaths = new string[] {
                 "Assets/Nefta/Core",
                 "Assets/Nefta/AdSdk"
             };
             
-            ExportPackage(assetPaths, $"NeftaAdSDK_v{Application.version}.unitypackage");
+            ExportPackage(assetPaths, $"NeftaAdSDK_{Application.version}.unitypackage");
         }
         
         [MenuItem("Nefta developer/Export packages/Toolbox SDK")]
@@ -25,7 +28,7 @@ namespace Editor
                 "Assets/Nefta/ToolboxSdk"
             };
             
-            ExportPackage(assetPaths, $"NeftaToolboxSDK_v{Application.version}.unitypackage");
+            ExportPackage(assetPaths, $"NeftaToolboxSDK_{Application.version}.unitypackage");
         }
         
         [MenuItem("Nefta developer/Open export location")]

@@ -20,7 +20,7 @@ namespace Nefta.Core.Editor
         private string _selectedPage;
         private Color _originalBackgroundColor;
         private Texture2D _logo;
-        private bool _isDevelopmentMode;
+        private bool _isLoggingEnabled;
         private bool _isEventRecordingEnabled;
 
         private static NeftaEditorWindow Instance;
@@ -28,6 +28,13 @@ namespace Nefta.Core.Editor
         [InitializeOnLoadMethod]
         private static void Init()
         {
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating)
+            {
+                EditorApplication.delayCall += Init;
+                return;
+            }
+            EditorApplication.delayCall -= Init;
+            
             var defines = GetDefines();
             var isDevelopment = defines.Contains(SdkDevelopmentSymbol);
             var isRelease = defines.Contains(SdkReleaseSymbol);
@@ -35,6 +42,7 @@ namespace Nefta.Core.Editor
             {
                 SetSymbolEnabled(SdkDevelopmentSymbol, true);
             }
+            GetConfiguration();
         }
 
         public static void RegisterModule(INeftaEditorModule module)
@@ -53,7 +61,7 @@ namespace Nefta.Core.Editor
                 return _configuration;
             }
 
-            if (EditorApplication.isCompiling || EditorApplication.isCompiling)
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating)
             {
                 return null;
             } 
@@ -67,6 +75,7 @@ namespace Nefta.Core.Editor
                 _configuration._configurations = new List<NeftaModuleConfiguration>();
 
                 _configuration._isEventRecordingEnabledOnStart = true;
+                _configuration._isLoggingEnabled = true;
                 
                 if (!Directory.Exists(directory))
                 {
@@ -97,13 +106,20 @@ namespace Nefta.Core.Editor
         public static void SetSymbolEnabled(string symbol, bool enabled)
         {
             var defines = GetDefines();
+            var symbolIndex = defines.IndexOf(symbol, StringComparison.InvariantCulture);
             if (enabled)
             {
-                defines += $";{symbol}";
+                if (string.IsNullOrEmpty(defines))
+                {
+                    defines = symbol;
+                }
+                else if (symbolIndex < 0)
+                {
+                    defines += $";{symbol}";
+                }
             }
             else
             {
-                var symbolIndex = defines.IndexOf(symbol, StringComparison.InvariantCulture);
                 if (symbolIndex == 0)
                 {
                     defines = defines.Replace(symbol, "");
@@ -113,7 +129,45 @@ namespace Nefta.Core.Editor
                     defines = defines.Replace($";{symbol}", "");
                 }
             }
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(GetNamedBuildTarget(), defines);
+
+            var activeTarget = GetNamedBuildTarget();
+            if (activeTarget != BuildTargetGroup.Android)
+            {
+                PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Android, defines);
+            }
+            if (activeTarget != BuildTargetGroup.iOS)
+            {
+                PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.iOS, defines);
+            }
+            PlayerSettings.SetScriptingDefineSymbolsForGroup(activeTarget, defines);
+        }
+
+        public static void EnableLogging(bool isEnabled)
+        {
+            if (Instance != null)
+            {
+                Instance._isLoggingEnabled = isEnabled;   
+            }
+            
+            SetSymbolEnabled(SdkDevelopmentSymbol, isEnabled);
+            SetSymbolEnabled(SdkReleaseSymbol, !isEnabled);
+            
+            var guid = AssetDatabase.FindAssets("NeftaPlugin-debug")[0];
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+            var importer = (PluginImporter) AssetImporter.GetAtPath(path);
+            importer.SetCompatibleWithPlatform(BuildTarget.Android, isEnabled);
+            importer.SaveAndReimport();
+            
+            guid = AssetDatabase.FindAssets("NeftaPlugin-release")[0];
+            path = AssetDatabase.GUIDToAssetPath(guid);
+            importer = (PluginImporter) AssetImporter.GetAtPath(path);
+            importer.SetCompatibleWithPlatform(BuildTarget.Android, !isEnabled);
+            importer.SaveAndReimport();
+
+            var configuration = GetConfiguration();
+            configuration._isLoggingEnabled = isEnabled;
+            EditorUtility.SetDirty(_configuration);
+            AssetDatabase.SaveAssetIfDirty(configuration);
         }
 
         [MenuItem("Window/Nefta SDK")]
@@ -129,7 +183,7 @@ namespace Nefta.Core.Editor
             var logoPath = AssetDatabase.GUIDToAssetPath("972cbec602f9a44089f7ec035d5564e4");
             _logo = AssetDatabase.LoadAssetAtPath<Texture2D>(logoPath);
 
-            Instance._isDevelopmentMode = GetDefines().Contains(SdkDevelopmentSymbol);
+            Instance._isLoggingEnabled = GetDefines().Contains(SdkDevelopmentSymbol);
 
             _pages = new Dictionary<string, Action>
             {
@@ -193,26 +247,25 @@ namespace Nefta.Core.Editor
                 _configuration._applicationId = applicationId;
                 UpdateConfigurationOnDisk();
             }
-            var isEventRecordingEnabled = GUILayout.Toggle(_configuration._isEventRecordingEnabledOnStart, "Enable event recording on start");
+            
+            GUILayout.Space(5);
+            var isEventRecordingEnabled = GUILayout.Toggle(_configuration._isEventRecordingEnabledOnStart, "Enable game event recording");
             if (isEventRecordingEnabled != _configuration._isEventRecordingEnabledOnStart)
             {
                 _configuration._isEventRecordingEnabledOnStart = isEventRecordingEnabled;
                 UpdateConfigurationOnDisk();
             }
+            
+            GUILayout.Space(5);
+            var isLoggingEnabled = GUILayout.Toggle(_isLoggingEnabled, "Enable logging");
+            if (isLoggingEnabled != _isLoggingEnabled)
+            {
+                EnableLogging(isLoggingEnabled);
+            }
         }
 
         private void OnUtilityPage()
         {
-            var isDevelopment = GUILayout.Toggle(_isDevelopmentMode, "Enable logging for the current platform");
-            if (isDevelopment != _isDevelopmentMode)
-            {
-                _isDevelopmentMode = isDevelopment;
-                SetSymbolEnabled(SdkDevelopmentSymbol, isDevelopment);
-                SetSymbolEnabled(SdkReleaseSymbol, !isDevelopment);
-            }
-            
-            GUILayout.Space(20);
-            
             if (GUILayout.Button("Clear cached player In PlayerPrefs"))
             {
                 NeftaPlugin.ClearPrefs();

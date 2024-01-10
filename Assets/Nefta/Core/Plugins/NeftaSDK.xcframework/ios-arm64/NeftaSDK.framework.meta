@@ -69,12 +69,17 @@ PluginImporter:
       settings:
         CPU: None
   - first:
+      WebGL: WebGL
+    second:
+      enabled: 0
+      settings: {}
+  - first:
       iPhone: iOS
     second:
       enabled: 1
       settings:
         AddToEmbeddedBinaries: true
-        CPU: AnyCPU
+        CPU: ARM64
         CompileFlags: 
         FrameworkDependencies: 
   userData: 

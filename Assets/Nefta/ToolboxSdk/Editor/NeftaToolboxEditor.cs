@@ -18,11 +18,12 @@ namespace Nefta.ToolboxSdk.Editor
         [InitializeOnLoadMethod]
         private static void Init()
         {
-            if (EditorApplication.isUpdating)
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating)
             {
                 EditorApplication.delayCall += Init;
                 return;
             }
+            EditorApplication.delayCall -= Init;
             
             var instance = new NeftaToolboxEditor();
             NeftaEditorWindow.RegisterModule(instance);
@@ -75,8 +76,7 @@ namespace Nefta.ToolboxSdk.Editor
 
             }
             EditorGUILayout.EndHorizontal();
-            
-            GUILayout.Space(20);
+            GUILayout.Space(5);
             
             var isMetaMaskIntegration = GUILayout.Toggle(_isMetaMaskIntegration, "Enable MetaMask integration");
             if (isMetaMaskIntegration != _isMetaMaskIntegration)
@@ -84,8 +84,7 @@ namespace Nefta.ToolboxSdk.Editor
                 _isMetaMaskIntegration = isMetaMaskIntegration;
                 NeftaEditorWindow.SetSymbolEnabled(MetaMaskIntegrationSymbol, _isMetaMaskIntegration);
             }
-            
-            GUILayout.Space(20);
+            GUILayout.Space(5);
             
             var preloadStrategy = (Toolbox.PreloadStrategies) EditorGUILayout.EnumPopup("Preload strategy", _configuration._preloadStrategy);
             if (preloadStrategy != _configuration._preloadStrategy)
@@ -94,8 +93,7 @@ namespace Nefta.ToolboxSdk.Editor
                 
                 NeftaEditorWindow.UpdateConfigurationOnDisk();
             }
-            
-            GUILayout.Space(20);
+            GUILayout.Space(5);
             
             if (GUILayout.Button("Clear Asset cache"))
             {

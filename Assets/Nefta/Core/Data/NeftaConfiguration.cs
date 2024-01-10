@@ -12,5 +12,6 @@ namespace Nefta.Core.Data
         [SerializeReference] public List<NeftaModuleConfiguration> _configurations;
 
         public bool _isEventRecordingEnabledOnStart;
+        public bool _isLoggingEnabled;
     }
 }
