@@ -39,6 +39,18 @@ namespace Editor
         
         private static void ExportPackage(string[] assetPaths, string packageName)
         {
+            var guid = AssetDatabase.FindAssets("NeftaPlugin-debug")[0];
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+            var importer = (PluginImporter) AssetImporter.GetAtPath(path);
+            importer.SetCompatibleWithPlatform(BuildTarget.Android, true);
+            importer.SaveAndReimport();
+            
+            guid = AssetDatabase.FindAssets("NeftaPlugin-release")[0];
+            path = AssetDatabase.GUIDToAssetPath(guid);
+            importer = (PluginImporter) AssetImporter.GetAtPath(path);
+            importer.SetCompatibleWithPlatform(BuildTarget.Android, false);
+            importer.SaveAndReimport();
+            
             try
             {
                 AssetDatabase.ExportPackage(assetPaths, packageName, ExportPackageOptions.Recurse);

@@ -1,7 +1,5 @@
-using System;
 using Nefta.Core.Data;
 using UnityEditor;
-using UnityEngine;
 
 namespace Nefta.Core.Editor
 {
