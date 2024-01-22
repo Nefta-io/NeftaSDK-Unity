@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Nefta.Core.Data
 {
@@ -7,7 +8,8 @@ namespace Nefta.Core.Data
     {
         public const string FileName = "NeftaConfiguration";
 
-        public string _applicationId;
+        [FormerlySerializedAs("_applicationId")] public string _androidAppId;
+        public string _iOSAppId;
         
         [SerializeReference] public List<NeftaModuleConfiguration> _configurations;
 

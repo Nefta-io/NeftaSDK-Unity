@@ -55,7 +55,12 @@ namespace Nefta.Core
             
             var gameObject = new GameObject("_NeftaPlugin");
             Instance.Plugin = gameObject.AddComponent<NeftaPluginWrapper>();
-            Instance.Plugin.Init(Instance._configuration._applicationId);
+#if UNITY_ANDROID
+            var appId = Instance._configuration._androidAppId;
+#else
+            var appId = Instance._configuration._iOSAppId;
+#endif
+            Instance.Plugin.Init(appId);
 
             return Instance;
         }

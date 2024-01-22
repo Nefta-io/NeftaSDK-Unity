@@ -22,6 +22,8 @@ namespace Nefta.Core.Editor
         private Texture2D _logo;
         private bool _isLoggingEnabled;
         private bool _isEventRecordingEnabled;
+        private GUIContent _androidAppIdLabel;
+        private GUIContent _iOSAppIdLabel;
 
         private static NeftaEditorWindow Instance;
 
@@ -182,6 +184,12 @@ namespace Nefta.Core.Editor
             
             var logoPath = AssetDatabase.GUIDToAssetPath("972cbec602f9a44089f7ec035d5564e4");
             _logo = AssetDatabase.LoadAssetAtPath<Texture2D>(logoPath);
+            
+            _androidAppIdLabel =  EditorGUIUtility.IconContent("BuildSettings.Android On");
+            _androidAppIdLabel.text = " Android AppId";
+            
+            _iOSAppIdLabel =  EditorGUIUtility.IconContent("BuildSettings.iPhone On");
+            _iOSAppIdLabel.text = " iOS AppId";
 
             Instance._isLoggingEnabled = GetDefines().Contains(SdkDevelopmentSymbol);
 
@@ -241,10 +249,16 @@ namespace Nefta.Core.Editor
 
         private void OnCorePage()
         {
-            var applicationId = EditorGUILayout.TextField("Application Id", _configuration._applicationId);
-            if (applicationId != _configuration._applicationId)
+            var appId = EditorGUILayout.TextField(_androidAppIdLabel, _configuration._androidAppId);
+            if (appId != _configuration._androidAppId)
             {
-                _configuration._applicationId = applicationId;
+                _configuration._androidAppId = appId;
+                UpdateConfigurationOnDisk();
+            }
+            appId = EditorGUILayout.TextField(_iOSAppIdLabel, _configuration._iOSAppId);
+            if (appId != _configuration._iOSAppId)
+            {
+                _configuration._iOSAppId = appId;
                 UpdateConfigurationOnDisk();
             }
             
