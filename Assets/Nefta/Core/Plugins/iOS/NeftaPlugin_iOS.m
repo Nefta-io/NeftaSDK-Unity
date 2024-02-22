@@ -26,7 +26,6 @@ extern "C" {
     void NeftaPlugin_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoadStart, OnLoadFail onLoadFail, OnChange onLoad, OnShow onShow, OnShow onBannerChange, OnChange onClick, OnChange onClose, OnChange onReward);
     const char *NeftaPlugin_GetToolboxUser(void *instance);
     void NeftaPlugin_SetToolboxUser(void *instance, const char *user);
-    void NeftaPlugin_SetCustomBatchSize(void *instance, int newBatchSize);
     void NeftaPlugin_Record(void *instance, const char *event);
     void NeftaPlugin_SetPublisherUserId(void *instance, const char *userId);
     void NeftaPlugin_EnableAds(void *instance, Boolean enable);
@@ -129,11 +128,6 @@ void NeftaPlugin_SetToolboxUser(void *instance, const char *user)
 void NeftaPlugin_Record(void *instance, const char *event)
 {
     [_plugin RecordWithEvent: [NSString stringWithUTF8String: event]];
-}
-
-void NeftaPlugin_SetCustomBatchSize(void *instance, int newBatchSize)
-{
-    [_plugin SetCustomBatchSize: newBatchSize];
 }
 
 void NeftaPlugin_EnableAds(void *instance, Boolean enable)

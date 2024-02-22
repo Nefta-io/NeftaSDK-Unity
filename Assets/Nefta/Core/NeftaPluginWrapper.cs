@@ -84,9 +84,6 @@ namespace Nefta.Core
         private static extern void NeftaPlugin_SetToolboxUser(IntPtr instance, string neftaUser);
 
         [DllImport ("__Internal")]
-        private static extern IntPtr NeftaPlugin_SetCustomBatchSize(IntPtr instance, int newBatchSize);
-
-        [DllImport ("__Internal")]
         private static extern void NeftaPlugin_Record(IntPtr instance, string recordedEvent);
             
         [DllImport ("__Internal")]
@@ -221,17 +218,6 @@ namespace Nefta.Core
             NeftaPlugin_SetPublisherUserId(_plugin, publisherUserId);
 #elif UNITY_ANDROID
             _plugin.Call("SetPublisherUserId", publisherUserId);
-#endif
-        }
-        
-        public void SetCustomBatchSize(int newBatchSize)
-        {
-#if UNITY_EDITOR
-            _plugin.SetCustomBatchSize(newBatchSize);
-#elif UNITY_IOS
-            NeftaPlugin_SetCustomBatchSize(_plugin, newBatchSize);
-#elif UNITY_ANDROID
-            _plugin.Call("SetCustomBatchSize", newBatchSize);
 #endif
         }
 

@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65b9015c844a43649cee70bcdf7b336c, type: 3}
   m_Name: NeftaConfiguration
   m_EditorClassIdentifier: 
-  _androidAppId: 5630785994358784
-  _iOSAppId: 5630785994358764
+  _androidAppId: 5643649824063488
+  _iOSAppId: 5661184053215232
   _configurations:
   - rid: 7750192628263550977
   _isEventRecordingEnabledOnStart: 1
