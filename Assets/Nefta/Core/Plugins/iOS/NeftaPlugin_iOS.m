@@ -84,15 +84,11 @@ void NeftaPlugin_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoad
     };
     _plugin.IOnShow = ^void(NSString * _Nonnull pId, NSInteger width, NSInteger height) {
         const char *cPId = [pId UTF8String];
-        int w = [UIScreen mainScreen].scale * width;
-        int h = [UIScreen mainScreen].scale * height;
-        onShow(cPId, w, h);
+        onShow(cPId, (int)width, (int)height);
     };
     _plugin.IOnBannerChange = ^void(NSString * _Nonnull pId, NSInteger width, NSInteger height) {
         const char *cPId = [pId UTF8String];
-        int w = [UIScreen mainScreen].scale * width;
-        int h = [UIScreen mainScreen].scale * height;
-        onBannerChange(cPId, w, h);
+        onBannerChange(cPId, (int)width, (int)height);
     };
     _plugin.IOnClick = ^void(NSString * _Nonnull pId) {
         const char *cPId = [pId UTF8String];
