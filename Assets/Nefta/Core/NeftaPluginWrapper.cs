@@ -128,6 +128,12 @@ namespace Nefta.Core
         [DllImport ("__Internal")]
         private static extern void NeftaPlugin_CloseWithId(IntPtr instance, string pid);
 
+        [DllImport ("__Internal")]
+        private static extern void NeftaPlugin_Mute(IntPtr instance, bool mute);
+
+        [DllImport ("__Internal")]
+        private static extern string NeftaPlugin_ShowNuid(IntPtr instance);
+
         private IntPtr _plugin;
         private static INeftaListener _listener;
 #elif UNITY_ANDROID
@@ -374,6 +380,30 @@ namespace Nefta.Core
 #elif UNITY_ANDROID
             _plugin.Call("Close", id);
 #endif
+        }
+        
+        public void Mute(bool mute)
+        {
+#if UNITY_EDITOR
+            _plugin.Mute(mute);
+#elif UNITY_IOS
+            NeftaPlugin_Mute(_plugin, mute);
+#elif UNITY_ANDROID
+            _plugin.Call<string>("Mute", mute);
+#endif
+        }
+        
+        public string ShowNuid()
+        {
+            string nuid = null;
+#if UNITY_EDITOR
+            nuid = _plugin.ShowNuid();
+#elif UNITY_IOS
+            nuid = NeftaPlugin_ShowNuid(_plugin);
+#elif UNITY_ANDROID
+            nuid = _plugin.Call<string>("ShowNuid");
+#endif
+            return nuid;
         }
     }
 }

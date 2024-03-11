@@ -41,6 +41,8 @@ extern "C" {
     void NeftaPlugin_ShowWithId(void *instance, const char *pId);
     void NeftaPlugin_Close(void *instance);
     void NeftaPlugin_CloseWithId(void *instance, const char *pId);
+    void NeftaPlugin_Mute(void *instance, bool mute);
+    const char * NeftaPlugin_ShowNuid(void *instance);
 #ifdef __cplusplus
 }
 #endif
@@ -194,4 +196,15 @@ void NeftaPlugin_Close(void *instance)
 void NeftaPlugin_CloseWithId(void *instance, const char *pId)
 {
     [_plugin CloseWithId: [NSString stringWithUTF8String: pId]];
+}
+
+void NeftaPlugin_Mute(void *instance, bool mute) {
+    [_plugin Mute: mute];
+}
+
+const char * NeftaPlugin_ShowNuid(void *instance) {
+    const char *string = [[_plugin ShowNuid] UTF8String];
+    char *returnString = (char *)malloc(strlen(string) + 1);
+    strcpy(returnString, string);
+    return returnString;
 }
