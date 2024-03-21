@@ -55,9 +55,8 @@ void NeftaPlugin_EnableLogging(bool enable) {
 
 void * NeftaPlugin_Init(const char *appId)
 {
-    UIView *view = UnityGetGLViewController().view;
     _plugin = [NeftaPlugin_iOS InitWithAppId: [NSString stringWithUTF8String: appId]];
-    [_plugin PrepareRendererWithView: view];
+    [_plugin PrepareRendererWithViewController: UnityGetGLViewController()];
     return (__bridge_retained void *)_plugin;
 }
 
