@@ -47,12 +47,10 @@ namespace Nefta.Core
             
             Instance._configuration = Resources.Load<NeftaConfiguration>(NeftaConfiguration.FileName);
             Assert.IsNotNull(Instance._configuration, "Missing NeftaConfiguration ScriptableObject");
-            
             if (Instance._configuration._isLoggingEnabled)
             {
                 EnableLogging(true);
             }
-            
             var gameObject = new GameObject("_NeftaPlugin");
             Instance.Plugin = gameObject.AddComponent<NeftaPluginWrapper>();
 #if UNITY_ANDROID
