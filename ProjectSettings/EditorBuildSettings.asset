@@ -8,7 +8,4 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AdDemo/AdDemoScene.unity
     guid: d751acd2c41b34bce9b0959a1633577a
-  - enabled: 0
-    path: Assets/ToolboxDemo/ToolboxDemoScene.unity
-    guid: 645df4e64a7d445faada6b9c83a736ea
   m_configObjects: {}

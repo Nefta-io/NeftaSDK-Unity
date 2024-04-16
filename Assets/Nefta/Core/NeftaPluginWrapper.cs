@@ -76,12 +76,6 @@ namespace Nefta.Core
 
         [DllImport ("__Internal")]
         private static extern void NeftaPlugin_RegisterCallbacks(OnReadyDelegate onReady, OnBidDelegate onBid, OnChangeDelegate onLoadStart, OnLoadFailDelegate onLoadFail, OnChangeDelegate onLoad, OnShowDelegate onShow, OnShowDelegate onBannerChange, OnChangeDelegate onClick, OnChangeDelegate onReward, OnChangeDelegate onClose);
-         
-        [DllImport ("__Internal")]
-        private static extern string NeftaPlugin_GetToolboxUser(IntPtr instance);   
-
-        [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_SetToolboxUser(IntPtr instance, string neftaUser);
 
         [DllImport ("__Internal")]
         private static extern void NeftaPlugin_Record(IntPtr instance, string recordedEvent);
@@ -132,7 +126,7 @@ namespace Nefta.Core
         private static extern void NeftaPlugin_Mute(IntPtr instance, bool mute);
 
         [DllImport ("__Internal")]
-        private static extern string NeftaPlugin_ShowNuid(IntPtr instance);
+        private static extern string NeftaPlugin_GetNuid(IntPtr instance, bool present);
 
         private IntPtr _plugin;
         private static INeftaListener _listener;
@@ -192,28 +186,17 @@ namespace Nefta.Core
 #endif
         }
 
-        public void SetToolboxUser(string neftaUser)
+        public string GetNuid(bool present)
         {
+            string nuid = null;
 #if UNITY_EDITOR
-            _plugin.SetToolboxUser(neftaUser);
+            nuid = _plugin.GetNuid(present);
 #elif UNITY_IOS
-            NeftaPlugin_SetToolboxUser(_plugin, neftaUser);
+            nuid = NeftaPlugin_GetNuid(_plugin, present);
 #elif UNITY_ANDROID
-            _plugin.Call("SetToolboxUser", neftaUser);
+            nuid = _plugin.Call<string>("GetNuid", present);
 #endif
-        }
-
-        public string GetToolboxUser()
-        {
-            string user = null;
-#if UNITY_EDITOR
-            user = _plugin.GetToolboxUser();
-#elif UNITY_IOS
-            user = NeftaPlugin_GetToolboxUser(_plugin);
-#elif UNITY_ANDROID
-            user = _plugin.Call<string>("GetToolboxUser");
-#endif
-            return user;
+            return nuid;
         }
         
         public void SetPublisherUserId(string publisherUserId)
@@ -391,19 +374,6 @@ namespace Nefta.Core
 #elif UNITY_ANDROID
             _plugin.Call<string>("Mute", mute);
 #endif
-        }
-        
-        public string ShowNuid()
-        {
-            string nuid = null;
-#if UNITY_EDITOR
-            nuid = _plugin.ShowNuid();
-#elif UNITY_IOS
-            nuid = NeftaPlugin_ShowNuid(_plugin);
-#elif UNITY_ANDROID
-            nuid = _plugin.Call<string>("ShowNuid");
-#endif
-            return nuid;
         }
     }
 }

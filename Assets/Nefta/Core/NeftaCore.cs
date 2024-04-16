@@ -12,8 +12,6 @@ namespace Nefta.Core
 {
     public class NeftaCore : IJsonFormatterResolver
     {
-        public const string BaseUrl = "https://api.Nefta.io/v2.0";
-
         private List<IJsonFormatterResolver> _resolvers;
         private NeftaUser _neftaUser;
         private NeftaConfiguration _configuration;
@@ -61,23 +59,6 @@ namespace Nefta.Core
             Instance.Plugin.Init(appId);
 
             return Instance;
-        }
-
-        public NeftaUser GetUser()
-        {
-            var neftaUser = Plugin.GetToolboxUser();
-            if (string.IsNullOrEmpty(neftaUser))
-            {
-                return null;
-            }
-            
-            return Deserialize<NeftaUser>(Encoding.UTF8.GetBytes(neftaUser));
-        }
-
-        public void SetUser(NeftaUser user)
-        {
-            var neftaUser = Encoding.UTF8.GetString(Serialize(user));
-            Plugin.SetToolboxUser(neftaUser);
         }
 
         public void Record(GameEvent gameEvent)

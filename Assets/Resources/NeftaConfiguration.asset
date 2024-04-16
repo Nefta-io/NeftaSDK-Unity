@@ -14,16 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _androidAppId: 5643649824063488
   _iOSAppId: 5661184053215232
-  _configurations:
-  - rid: 7750192628263550977
+  _configurations: []
   _isEventRecordingEnabledOnStart: 1
   _isLoggingEnabled: 1
   references:
     version: 2
-    RefIds:
-    - rid: 7750192628263550977
-      type: {class: ToolboxConfiguration, ns: Nefta.ToolboxSdk, asm: Nefta.ToolboxSdk}
-      data:
-        _marketplaceId: m1-85929
-        _preloadStrategy: 2
-        _oAuthProviders: []
+    RefIds: []

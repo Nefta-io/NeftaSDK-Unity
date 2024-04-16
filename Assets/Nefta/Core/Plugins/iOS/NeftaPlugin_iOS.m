@@ -24,8 +24,6 @@ extern "C" {
     void EnableLogging(bool enable);
     void * NeftaPlugin_Init(const char *appId);
     void NeftaPlugin_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoadStart, OnLoadFail onLoadFail, OnChange onLoad, OnShow onShow, OnShow onBannerChange, OnChange onClick, OnChange onClose, OnChange onReward);
-    const char *NeftaPlugin_GetToolboxUser(void *instance);
-    void NeftaPlugin_SetToolboxUser(void *instance, const char *user);
     void NeftaPlugin_Record(void *instance, const char *event);
     void NeftaPlugin_SetPublisherUserId(void *instance, const char *userId);
     void NeftaPlugin_EnableAds(void *instance, Boolean enable);
@@ -42,7 +40,7 @@ extern "C" {
     void NeftaPlugin_Close(void *instance);
     void NeftaPlugin_CloseWithId(void *instance, const char *pId);
     void NeftaPlugin_Mute(void *instance, bool mute);
-    const char * NeftaPlugin_ShowNuid(void *instance);
+    const char * NeftaPlugin_GetNuid(void *instance, bool present);
 #ifdef __cplusplus
 }
 #endif
@@ -103,23 +101,6 @@ void NeftaPlugin_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoad
         const char *cPId = [pId UTF8String];
         onReward(cPId);
     };
-}
-
-const char * NeftaPlugin_GetToolboxUser(void *instance)
-{
-    NSString *user = [_plugin GetToolboxUser];
-    if (user == nil) {
-        return nil;
-    }
-    const char *string = [user UTF8String];
-    char *returnString = (char *)malloc(strlen(string) + 1);
-    strcpy(returnString, string);
-    return returnString;
-}
-
-void NeftaPlugin_SetToolboxUser(void *instance, const char *user)
-{
-    [_plugin SetToolboxUserWithJson: [NSString stringWithUTF8String: user]];
 }
 
 void NeftaPlugin_Record(void *instance, const char *event)
@@ -201,8 +182,8 @@ void NeftaPlugin_Mute(void *instance, bool mute) {
     [_plugin Mute: mute];
 }
 
-const char * NeftaPlugin_ShowNuid(void *instance) {
-    const char *string = [[_plugin ShowNuid] UTF8String];
+const char * NeftaPlugin_GetNuid(void *instance, bool present) {
+    const char *string = [[_plugin GetNuidWithPresent: present] UTF8String];
     char *returnString = (char *)malloc(strlen(string) + 1);
     strcpy(returnString, string);
     return returnString;
