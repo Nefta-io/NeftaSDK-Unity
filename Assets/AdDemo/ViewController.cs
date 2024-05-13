@@ -1,4 +1,4 @@
-using Nefta.AdSdk;
+using Nefta.Ads;
 using UnityEngine;
 using UnityEngine.UI;
 

@@ -1,4 +1,4 @@
-using Nefta.AdSdk;
+using Nefta.Ads;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -65,21 +65,21 @@ namespace AdDemo
             string bid = "Available Bid:";
             if (_placement._availableBid != null)
             {
-                bid += $"[available ({_placement._availableBid._price})]";
+                bid += $"[available ({_placement._availableBid.Value})]";
             }
             _availableBidText.text = bid;
             
             bid = "Buffer Bid:";
             if (_placement._bufferBid != null)
             {
-                bid += $"[loaded ({_placement._bufferBid._price})]";
+                bid += $"[loaded ({_placement._bufferBid.Value})]";
             }
             _bufferBidText.text = bid;
             
             bid = "Rendered Bid: ";
             if (_placement._renderedBid != null)
             {
-                bid += $"[rendering ({_placement._renderedBid._price})]";
+                bid += $"[rendering ({_placement._renderedBid.Value})]";
             }
             _renderedBidText.text = bid;
         }

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using Nefta.AdSdk;
-using Nefta.Core;
-using Nefta.Core.Events;
+using Nefta.Ads;
+using Nefta.Events;
 using UnityEngine;
 
 namespace AdDemo
@@ -20,8 +19,6 @@ namespace AdDemo
         
         private void Awake()
         {
-            NeftaCore.EnableLogging(true);
-            
             _neftaAds = NeftaAds.Init();
             _neftaAds.OnReady = OnReady;
             _neftaAds.OnBid = OnBid;
@@ -36,7 +33,7 @@ namespace AdDemo
             
             _neftaAds.EnableBanner(true);
 
-            NeftaCore.Instance.Record(new ProgressionEvent() { _source = Source.Boss });
+            Nefta.Adapter.Instance.Record(new ProgressionEvent() { _source = Source.Boss, _name = "hard boss"});
 
             AdjustOffsets(0);
         }
@@ -64,7 +61,6 @@ namespace AdDemo
 
         private void OnBid(Placement placement)
         {
-            NeftaCore.Instance.Record(new ProgressionEvent() { _source = Source.Boss });
             _placementControllers[placement._id].OnBid();
         }
         
