@@ -145,5 +145,41 @@ namespace Nefta.Editor
             plist.ReadFromFile(frameworkPath + "/Info.plist");
             _iosVersion = plist.root["Version"].AsString();
         }
+        
+        [MenuItem("Window/Select Nefta Configuration", false, int.MaxValue)]
+        private static void SelectNeftaConfiguration()
+        {
+            var configuration = GetNeftaConfiguration();
+            if (configuration == null)
+            {
+                configuration = CreateInstance<NeftaConfiguration>();
+                
+                var directory = "Assets/Resources";
+                var assetPath = $"{directory}/{NeftaConfiguration.FileName}.asset";
+                if (!Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+                AssetDatabase.CreateAsset(configuration, assetPath);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+            }
+            Selection.objects = new UnityEngine.Object[] { configuration };
+            EditorUtility.FocusProjectWindow();
+        }
+        
+        private static NeftaConfiguration GetNeftaConfiguration()
+        {
+            NeftaConfiguration configuration = null;
+            
+            string[] guids = AssetDatabase.FindAssets("t:NeftaConfiguration");
+            if (guids.Length > 0)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guids[0]);
+                configuration = AssetDatabase.LoadAssetAtPath<NeftaConfiguration>(path);
+            }
+
+            return configuration;
+        }
     }
 }
