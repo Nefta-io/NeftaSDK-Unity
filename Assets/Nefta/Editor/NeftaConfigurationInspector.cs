@@ -24,7 +24,9 @@ namespace Nefta.Editor
             _isLoggingEnabled = _configuration._isLoggingEnabled;
             
             _error = null;
+#if UNITY_2021_1_OR_NEWER
             GetAndroidVersions();
+#endif
             GetIosVersions();
         }
 
@@ -41,6 +43,7 @@ namespace Nefta.Editor
                 return;
             }
             
+#if UNITY_2021_1_OR_NEWER
             if (_androidVersion != _iosVersion)
             {
                 DrawVersion("Nefta SDK Android version", _androidVersion);
@@ -48,6 +51,7 @@ namespace Nefta.Editor
                 DrawVersion("Nefta SDK iOS version", _iosVersion);
             }
             else
+#endif
             {
                 DrawVersion("Nefta SDK version", _androidVersion);
             }
@@ -88,6 +92,7 @@ namespace Nefta.Editor
             EditorGUILayout.EndHorizontal();
         }
         
+#if UNITY_2021_1_OR_NEWER
         private void GetAndroidVersions()
         {
             var guids = AssetDatabase.FindAssets("NeftaPlugin-");
@@ -120,6 +125,7 @@ namespace Nefta.Editor
             }
             _androidVersion = root.Attributes["android:versionName"].Value;
         }
+#endif
         
         private void GetIosVersions()
         {
