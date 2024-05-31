@@ -32,7 +32,6 @@ namespace Nefta
             NeftaPluginWrapper.EnableLogging(configuration._isLoggingEnabled);
 #if UNITY_IOS
             var appId = configuration._iOSAppId;
-            NeftaPluginWrapper.EnableLogging(configuration._isLoggingEnabled);
 #else
             var appId = configuration._androidAppId;
 #endif

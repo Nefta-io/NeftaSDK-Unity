@@ -14,9 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _androidAppId: 5643649824063488
   _iOSAppId: 5661184053215232
-  _configurations: []
-  _isEventRecordingEnabledOnStart: 1
-  _isLoggingEnabled: 1
-  references:
-    version: 2
-    RefIds: []
+  _isLoggingEnabled: 0

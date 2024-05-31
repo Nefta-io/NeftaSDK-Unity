@@ -33,7 +33,8 @@ namespace AdDemo
             
             _neftaAds.EnableBanner(true);
 
-            Nefta.Adapter.Instance.Record(new ProgressionEvent() { _source = Source.Boss, _name = "hard boss"});
+            Nefta.Adapter.Instance.Record(new ProgressionEvent(Type.Task, Status.Fail) { _name = "hard boss"});
+            Nefta.Adapter.Instance.Record(new ReceiveEvent(ResourceCategory.Experience) { _method = ReceiveMethod.Create, _value = 123, _name = "abc"}); 
 
             AdjustOffsets(0);
         }
