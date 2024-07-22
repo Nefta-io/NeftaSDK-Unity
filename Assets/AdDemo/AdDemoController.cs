@@ -7,6 +7,8 @@ namespace AdDemo
 {
     public class AdDemoController : MonoBehaviour
     {
+        private const string BannerAdUnitId = "5726295757422592";
+        
         [SerializeField] private RectTransform _contentRect;
         [SerializeField] private RectTransform _placementRect;
 
@@ -26,12 +28,11 @@ namespace AdDemo
             _neftaAds.OnLoadFail = OnLoadFail;
             _neftaAds.OnLoad = OnLoad;
             _neftaAds.OnShow = OnShow;
-            _neftaAds.OnBannerChange = OnBannerChange;
             _neftaAds.OnClose = OnClose;
             _neftaAds.OnUserRewarded = OnUserRewarded;
             _neftaAds.Enable(true);
             
-            _neftaAds.EnableBanner(true);
+            _neftaAds.EnableBanner(BannerAdUnitId, true);
 
             Nefta.Adapter.Instance.Record(new ProgressionEvent(Type.Task, Status.Fail) { _name = "hard boss"});
             Nefta.Adapter.Instance.Record(new ReceiveEvent(ResourceCategory.Experience) { _method = ReceiveMethod.Create, _value = 123, _name = "abc"}); 
@@ -85,14 +86,8 @@ namespace AdDemo
             _placementControllers[placement._id].OnShow();
             if (placement._type == Placement.Type.Banner)
             {
-                AdjustOffsets(placement._renderedHeight);
+                AdjustOffsets(placement.Height);
             }
-        }
-
-        private void OnBannerChange(Placement placement)
-        {
-            _placementControllers[placement._id].OnBannerChange();
-            AdjustOffsets(placement._renderedHeight);
         }
 
         private void OnClose(Placement placement)
@@ -100,7 +95,7 @@ namespace AdDemo
             _placementControllers[placement._id].OnClose();
             if (placement._type == Placement.Type.Banner)
             {
-                AdjustOffsets(placement._renderedHeight);
+                AdjustOffsets(placement.Height);
             }
         }
 

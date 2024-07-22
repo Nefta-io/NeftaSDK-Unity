@@ -4,7 +4,6 @@ using System.Xml;
 using Nefta.Data;
 using UnityEditor;
 using UnityEngine;
-using UnityEditor.iOS.Xcode;
 
 namespace Nefta.Editor
 {
@@ -129,21 +128,29 @@ namespace Nefta.Editor
         
         private void GetIosVersions()
         {
-            var guids = AssetDatabase.FindAssets("NeftaSDK.xcframework");
+            var guids = AssetDatabase.FindAssets("NeftaPlugin_iOS");
             if (guids.Length == 0)
             {
-                _error = "NeftaSDK.xcframework not found in project";
+                _error = "NeftaPlugin_iOS not found in project";
                 return;
             }
             if (guids.Length > 1)
             {
-                _error = "Multiple instances of NeftaSDK.xcframework found in project";
+                _error = "Multiple instances of NeftaPlugin_iOS found in project";
                 return;
             }
-            var frameworkPath = AssetDatabase.GUIDToAssetPath(guids[0]);
-            var plist = new PlistDocument();
-            plist.ReadFromFile(frameworkPath + "/Info.plist");
-            _iosVersion = plist.root["Version"].AsString();
+            var pluginPath = Path.GetDirectoryName(AssetDatabase.GUIDToAssetPath(guids[0]));
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.Load(pluginPath + "/NeftaSDK.xcframework/Info.plist");
+            var dict = xmlDoc.ChildNodes[2].ChildNodes[0];
+            for (var i = 0; i < dict.ChildNodes.Count; i++)
+            {
+                if (dict.ChildNodes[i].InnerText == "Version")
+                {
+                    _iosVersion = dict.ChildNodes[i + 1].InnerText;
+                    break;
+                }
+            }
         }
         
         [MenuItem("Window/Select Nefta Configuration", false, int.MaxValue)]

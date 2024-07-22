@@ -14,9 +14,9 @@ namespace Nefta
 #elif UNITY_IOS
         private delegate void OnReadyDelegate(string configuration);
         private delegate void OnBidDelegate(string pId, float price);
-        private delegate void OnChangeDelegate(string pId);
         private delegate void OnLoadFailDelegate(string pId, string error);
-        private delegate void OnShowDelegate(string pId, int width, int height);
+        private delegate void OnLoadDelegate(string pId, int width, int height);
+        private delegate void OnChangeDelegate(string pId);
  
         [MonoPInvokeCallback(typeof(OnReadyDelegate))] 
         private static void OnReady(string configuration) {
@@ -38,19 +38,14 @@ namespace Nefta
             _listener?.IOnLoadFail(pId, error);
         }
 
+        [MonoPInvokeCallback(typeof(OnLoadDelegate))] 
+        private static void OnLoad(string pId, int width, int height) {
+            _listener?.IOnLoad(pId, width, height);
+        }
+
         [MonoPInvokeCallback(typeof(OnChangeDelegate))] 
-        private static void OnLoad(string pId) {
-            _listener?.IOnLoad(pId);
-        }
-
-        [MonoPInvokeCallback(typeof(OnShowDelegate))] 
-        private static void OnShow(string pId, int width, int height) {
-            _listener?.IOnShow(pId, width, height);
-        }
-
-        [MonoPInvokeCallback(typeof(OnShowDelegate))] 
-        private static void OnBannerChange(string pId, int width, int height) {
-            _listener?.IOnBannerChange(pId, width, height);
+        private static void OnShow(string pId) {
+            _listener?.IOnShow(pId);
         }
 
         [MonoPInvokeCallback(typeof(OnChangeDelegate))] 
@@ -75,7 +70,7 @@ namespace Nefta
         private static extern IntPtr NeftaPlugin_Init(string appId);
 
         [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_RegisterCallbacks(OnReadyDelegate onReady, OnBidDelegate onBid, OnChangeDelegate onLoadStart, OnLoadFailDelegate onLoadFail, OnChangeDelegate onLoad, OnShowDelegate onShow, OnShowDelegate onBannerChange, OnChangeDelegate onClick, OnChangeDelegate onReward, OnChangeDelegate onClose);
+        private static extern void NeftaPlugin_RegisterCallbacks(OnReadyDelegate onReady, OnBidDelegate onBid, OnChangeDelegate onLoadStart, OnLoadFailDelegate onLoadFail, OnLoadDelegate onLoad, OnChangeDelegate onShow, OnChangeDelegate onClick, OnChangeDelegate onReward, OnChangeDelegate onClose);
 
         [DllImport ("__Internal")]
         private static extern void NeftaPlugin_Record(IntPtr instance, string recordedEvent);
@@ -87,31 +82,19 @@ namespace Nefta
         private static extern void NeftaPlugin_EnableAds(IntPtr instance, bool enable);
 
         [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_EnableBannerWithType(IntPtr instance, bool enable);
-
-        [DllImport ("__Internal")]
         private static extern void NeftaPlugin_EnableBannerWithId(IntPtr instance, string pId, bool enable);
 
         [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_SetPlacementModeWithType(IntPtr instance, int type, int mode);
+        private static extern void NeftaPlugin_SetPlacementPositionWithId(IntPtr instance, string pId, int position);
 
         [DllImport ("__Internal")]
         private static extern void NeftaPlugin_SetPlacementModeWithId(IntPtr instance, string pId, int mode);
             
         [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_BidWithType(IntPtr instance, int type);
-            
-        [DllImport ("__Internal")]
         private static extern void NeftaPlugin_BidWithId(IntPtr instance, string pId);
-
-        [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_LoadWithType(IntPtr instance, int type);
             
         [DllImport ("__Internal")]
         private static extern void NeftaPlugin_LoadWithId(IntPtr instance, string pId);
-
-        [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_ShowWithType(IntPtr instance, int type);
 
         [DllImport ("__Internal")]
         private static extern void NeftaPlugin_ShowWithId(IntPtr instance, string pId);
@@ -180,7 +163,7 @@ namespace Nefta
             _plugin._listener = listener;
 #elif UNITY_IOS
             _listener = listener;
-            NeftaPlugin_RegisterCallbacks(OnReady, OnBid, OnLoadStart, OnLoadFail, OnLoad, OnShow, OnBannerChange, OnClick, OnClose, OnReward);
+            NeftaPlugin_RegisterCallbacks(OnReady, OnBid, OnLoadStart, OnLoadFail, OnLoad, OnShow, OnClick, OnClose, OnReward);
 #elif UNITY_ANDROID
             _plugin.Call("SetListener", listener);
 #endif
@@ -233,14 +216,14 @@ namespace Nefta
 #endif
         }
         
-        public void SetPlacementMode(int type, int mode)
+        public void SetPlacementPosition(string id, int position)
         {
 #if UNITY_EDITOR
-            _plugin.SetPlacementMode(type, mode);
+            _plugin.SetPlacementPosition(id, position);
 #elif UNITY_IOS
-            NeftaPlugin_SetPlacementModeWithType(_plugin, type, mode);
+            NeftaPlugin_SetPlacementPositionWithId(_plugin, id, position);
 #elif UNITY_ANDROID
-            _plugin.Call("SetPlacementMode", type, mode);
+            _plugin.Call("SetPlacementPosition", id, position);
 #endif
         }
         
@@ -252,17 +235,6 @@ namespace Nefta
             NeftaPlugin_SetPlacementModeWithId(_plugin, id, mode);
 #elif UNITY_ANDROID
             _plugin.Call("SetPlacementMode", id, mode);
-#endif
-        }
-
-        public void Bid(int type)
-        {
-#if UNITY_EDITOR
-            NeftaPlugin.Instance.Bid(type);
-#elif UNITY_IOS
-            NeftaPlugin_BidWithType(_plugin, type);
-#elif UNITY_ANDROID
-            _plugin.Call("Bid", type);
 #endif
         }
         
@@ -277,17 +249,6 @@ namespace Nefta
 #endif
         }
 
-        public void EnableBanner(bool isEnabled)
-        {
-#if UNITY_EDITOR
-            NeftaPlugin.Instance.EnableBanner(isEnabled);
-#elif UNITY_IOS
-            NeftaPlugin_EnableBannerWithType(_plugin, isEnabled);
-#elif UNITY_ANDROID
-            _plugin.Call("EnableBanner", isEnabled);
-#endif
-        }
-
         public void EnableBanner(string id, bool isEnabled)
         {
 #if UNITY_EDITOR
@@ -299,17 +260,6 @@ namespace Nefta
 #endif
         }
         
-        public void Load(int type)
-        {
-#if UNITY_EDITOR
-            NeftaPlugin.Instance.Load(type);
-#elif UNITY_IOS
-            NeftaPlugin_LoadWithType(_plugin, type);
-#elif UNITY_ANDROID
-            _plugin.Call("Load", type);
-#endif
-        }
-        
         public void Load(string id)
         {
 #if UNITY_EDITOR
@@ -318,17 +268,6 @@ namespace Nefta
             NeftaPlugin_LoadWithId(_plugin, id);
 #elif UNITY_ANDROID
             _plugin.Call("Load", id);
-#endif
-        }
-
-        public void Show(int type)
-        {
-#if UNITY_EDITOR
-            _plugin.Show(type);
-#elif UNITY_IOS
-            NeftaPlugin_ShowWithType(_plugin, type);
-#elif UNITY_ANDROID
-            _plugin.Call("Show", type);
 #endif
         }
 

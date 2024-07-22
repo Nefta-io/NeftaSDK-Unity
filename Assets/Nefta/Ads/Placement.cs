@@ -16,11 +16,18 @@ namespace Nefta.Ads
             ScheduledLoad = 2,
             Continuous = 3
         }
+
+        public enum Position
+        {
+            Top = 0,
+            Bottom = 1
+        }
         
         public Type _type;
         public string _id;
-        public int _renderedWidth;
-        public int _renderedHeight;
+        internal int _renderedWidth;
+        internal int _renderedHeight;
+        public bool _isShown;
 
         public bool _isBidding;
         public bool _isLoading;
@@ -28,7 +35,11 @@ namespace Nefta.Ads
         public float? _bufferBid;
         public float? _renderedBid;
         public Mode _mode;
-        
+
+        public int Width => _isShown ? _renderedWidth : 0;
+
+        public int Height => _isShown ? _renderedHeight : 0;
+
         public bool CanLoad => !_isLoading;
         public bool CanShow => _bufferBid != null && !_isLoading;
 

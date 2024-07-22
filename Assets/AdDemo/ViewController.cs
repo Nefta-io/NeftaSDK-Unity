@@ -27,7 +27,7 @@ namespace AdDemo
         {
             base.SyncUi();
 
-            _isBannerEnabled = _placement._renderedHeight > 0;
+            _isBannerEnabled = _placement._isShown;
             _enableImage.SetActive(_isBannerEnabled);
         }
     }

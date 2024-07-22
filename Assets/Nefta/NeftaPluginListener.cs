@@ -29,17 +29,12 @@ namespace Nefta
             
         }
 
-        public virtual void IOnLoad(string pId)
+        public virtual void IOnLoad(string pId, int width, int height)
         {
             
         }
         
-        public virtual void IOnShow(string pId, int width, int height)
-        {
-            
-        }
-        
-        public virtual void IOnBannerChange(string pId, int width, int height)
+        public virtual void IOnShow(string pId)
         {
             
         }

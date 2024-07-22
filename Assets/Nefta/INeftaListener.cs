@@ -7,9 +7,8 @@ namespace Nefta
         void IOnBid(string pId, float price);
         void IOnLoadStart(string pId);
         void IOnLoadFail(string pId, string error);
-        void IOnLoad(string pId);
-        void IOnShow(string pId, int width, int height);
-        void IOnBannerChange(string pId, int width, int height);
+        void IOnLoad(string pId, int width, int height);
+        void IOnShow(string pId);
         void IOnClick(string pId);
         void IOnReward(string pId);
         void IOnClose(string pId);

@@ -79,29 +79,27 @@ namespace Nefta.Ads
             _adapter.Plugin.SetPublisherUserId(publisherUserId);
         }
 
-        public void EnableBanner(bool enable)
-        {
-            _adapter.Plugin.EnableBanner(enable);
-        }
-
         public void EnableBanner(string placementId, bool enable)
         {
+            if (Placements.TryGetValue(placementId, out var placement))
+            {
+                lock (_callbackQueue)
+                {
+                    placement._isShown = enable;
+                    _callbackQueue.Enqueue(new Callback(Callback.Actions.OnShow, placement));
+                }
+            }
             _adapter.Plugin.EnableBanner(placementId, enable);
         }
-        
-        public void SetPlacementMode(Placement.Type type, Placement.Mode mode)
+
+        public void SetPlacementPosition(string placementId, Placement.Position position)
         {
-            _adapter.Plugin.SetPlacementMode((int) type, (int) mode);
+            _adapter.Plugin.SetPlacementPosition(placementId, (int) position);   
         }
 
         public void SetPlacementMode(string placementId, Placement.Mode mode)
         {
             _adapter.Plugin.SetPlacementMode(placementId, (int) mode);   
-        }
-
-        public void Bid(Placement.Type type)
-        {
-            _adapter.Plugin.Bid((int)type);
         }
         
         public void Bid(string placementId)
@@ -112,11 +110,6 @@ namespace Nefta.Ads
         public void Load(string placementId)
         {
             _adapter.Plugin.Load(placementId);
-        }
-
-        public void Load(Placement.Type type)
-        {
-            _adapter.Plugin.Load((int)type);
         }
 
         public bool IsPlacementReady(Placement.Type type)
@@ -140,11 +133,6 @@ namespace Nefta.Ads
             }
 
             return false;
-        }
-
-        public void Show(Placement.Type type)
-        {
-            _adapter.Plugin.Show((int)type);
         }
         
         public void Show(string placementId)
@@ -246,12 +234,14 @@ namespace Nefta.Ads
             }
         }
 
-        public override void IOnLoad(string pId)
+        public override void IOnLoad(string pId, int width, int height)
         {
             lock (_callbackQueue)
             {
                 if (Placements.TryGetValue(pId, out var placement))
                 {
+                    placement._renderedWidth = width;
+                    placement._renderedHeight = height;
                     placement._isLoading = false;
                     
                     _callbackQueue.Enqueue(new Callback(Callback.Actions.OnLoad, placement));
@@ -259,32 +249,17 @@ namespace Nefta.Ads
             }
         }
 
-        public override void IOnShow(string pId, int width, int height)
+        public override void IOnShow(string pId)
         {
             lock (_callbackQueue)
             {
                 if (Placements.TryGetValue(pId, out var placement))
                 {
-                    placement._renderedWidth = width;
-                    placement._renderedHeight = height;
                     placement._renderedBid = placement._bufferBid;
                     placement._bufferBid = null;
+                    placement._isShown = true;
                     
                     _callbackQueue.Enqueue(new Callback(Callback.Actions.OnShow, placement));
-                }
-            }
-        }
-
-        public override void IOnBannerChange(string pId, int width, int height)
-        {
-            lock (_callbackQueue)
-            {
-                if (Placements.TryGetValue(pId, out var placement))
-                {
-                    placement._renderedWidth = width;
-                    placement._renderedHeight = height;
-                    
-                    _callbackQueue.Enqueue(new Callback(Callback.Actions.OnBannerChange, placement));
                 }
             }
         }
@@ -295,8 +270,6 @@ namespace Nefta.Ads
             {
                 if (Placements.TryGetValue(pId, out var placement))
                 {
-                    placement._isLoading = false;
-                    
                     _callbackQueue.Enqueue(new Callback(Callback.Actions.OnClick, placement));
                 }
             }
@@ -322,6 +295,7 @@ namespace Nefta.Ads
                     placement._renderedWidth = 0;
                     placement._renderedHeight = 0;
                     placement._renderedBid = null;
+                    placement._isShown = false;
                     
                     _callbackQueue.Enqueue(new Callback(Callback.Actions.OnClose, placement));
                 }

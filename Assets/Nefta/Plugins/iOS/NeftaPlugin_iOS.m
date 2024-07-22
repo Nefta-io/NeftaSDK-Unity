@@ -17,25 +17,21 @@ extern "C" {
     
     typedef void (*OnReady)(const char *configuration);
     typedef void (*OnBid)(const char *pId, float price);
-    typedef void (*OnChange)(const char *pId);
     typedef void (*OnLoadFail)(const char *pId, const char *error);
-    typedef void (*OnShow)(const char *pId, int width, int height);
+    typedef void (*OnLoad)(const char *pId, int width, int height);
+    typedef void (*OnChange)(const char *pId);
     
     void EnableLogging(bool enable);
     void * NeftaPlugin_Init(const char *appId);
-    void NeftaPlugin_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoadStart, OnLoadFail onLoadFail, OnChange onLoad, OnShow onShow, OnShow onBannerChange, OnChange onClick, OnChange onClose, OnChange onReward);
+    void NeftaPlugin_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoadStart, OnLoadFail onLoadFail, OnLoad onLoad, OnChange onShow, OnChange onClick, OnChange onClose, OnChange onReward);
     void NeftaPlugin_Record(void *instance, const char *event);
     void NeftaPlugin_SetPublisherUserId(void *instance, const char *userId);
     void NeftaPlugin_EnableAds(void *instance, Boolean enable);
-    void NeftaPlugin_EnableBannerWithType(void *instance, Boolean enable);
     void NeftaPlugin_EnableBannerWithId(void *instance, const char *pId, Boolean enable);
-    void NeftaPlugin_SetPlacementModeWithType(void *instance, int type, int mode);
+    void NeftaPlugin_SetPlacementPositionWithId(void *instance, const char *pId, int position);
     void NeftaPlugin_SetPlacementModeWithId(void *instance, const char *pId, int mode);
-    void NeftaPlugin_BidWithType(void *instance, int type);
     void NeftaPlugin_BidWithId(void *instance, const char *pId);
-    void NeftaPlugin_LoadWithType(void *instance, int type);
     void NeftaPlugin_LoadWithId(void *instance, const char *pId);
-    void NeftaPlugin_ShowWithType(void *instance, int type);
     void NeftaPlugin_ShowWithId(void *instance, const char *pId);
     void NeftaPlugin_Close(void *instance);
     void NeftaPlugin_CloseWithId(void *instance, const char *pId);
@@ -58,7 +54,7 @@ void * NeftaPlugin_Init(const char *appId)
     return (__bridge_retained void *)_plugin;
 }
 
-void NeftaPlugin_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoadStart, OnLoadFail onLoadFail, OnChange onLoad, OnShow onShow, OnShow onBannerChange, OnChange onClick, OnChange onClose, OnChange onReward)
+void NeftaPlugin_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoadStart, OnLoadFail onLoadFail, OnLoad onLoad, OnChange onShow, OnChange onClick, OnChange onClose, OnChange onReward)
 {
     _plugin.IOnReady = ^void(NSString * _Nonnull configuration) {
         const char *cConfiguration = [configuration UTF8String];
@@ -77,17 +73,13 @@ void NeftaPlugin_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoad
         const char *cError = [error UTF8String];
         onLoadFail(cPId, cError);
     };
-    _plugin.IOnLoad = ^void(NSString * _Nonnull pId) {
+    _plugin.IOnLoad = ^void(NSString * _Nonnull pId, NSInteger width, NSInteger height) {
         const char *cPId = [pId UTF8String];
-        onLoad(cPId);
+        onLoad(cPId, (int)width, (int)height);
     };
-    _plugin.IOnShow = ^void(NSString * _Nonnull pId, NSInteger width, NSInteger height) {
+    _plugin.IOnShow = ^void(NSString * _Nonnull pId) {
         const char *cPId = [pId UTF8String];
-        onShow(cPId, (int)width, (int)height);
-    };
-    _plugin.IOnBannerChange = ^void(NSString * _Nonnull pId, NSInteger width, NSInteger height) {
-        const char *cPId = [pId UTF8String];
-        onBannerChange(cPId, (int)width, (int)height);
+        onShow(cPId);
     };
     _plugin.IOnClick = ^void(NSString * _Nonnull pId) {
         const char *cPId = [pId UTF8String];
@@ -118,19 +110,14 @@ void NeftaPlugin_SetPublisherUserId(void *instance, const char *userId)
     [_plugin SetPublisherUserIdWithId: [NSString stringWithUTF8String: userId]];
 }
 
-void NeftaPlugin_EnableBannerWithType(void *instance, Boolean enable)
-{
-    [_plugin EnableBannerWithEnable: enable];
-}
-
 void NeftaPlugin_EnableBannerWithId(void *instance, const char *pId, Boolean enable)
 {
     [_plugin EnableBannerWithId: [NSString stringWithUTF8String: pId] enable: enable];
 }
 
-void NeftaPlugin_SetPlacementModeWithType(void *instance, int type, int mode)
+void NeftaPlugin_SetPlacementPositionWithId(void *instance, const char *pId, int position)
 {
-    [_plugin SetPlacementModeWithType: type mode: mode];
+    [_plugin SetPlacementPositionWithId: [NSString stringWithUTF8String:pId] position: position];
 }
 
 void NeftaPlugin_SetPlacementModeWithId(void *instance, const char *pId, int mode)
@@ -138,29 +125,14 @@ void NeftaPlugin_SetPlacementModeWithId(void *instance, const char *pId, int mod
     [_plugin SetPlacementModeWithId: [NSString stringWithUTF8String:pId] mode: mode];
 }
 
-void NeftaPlugin_BidWithType(void *instance, int type)
-{
-    [_plugin BidWithType: type];
-}
-
 void NeftaPlugin_BidWithId(void *instance, const char *pId)
 {
     [_plugin BidWithId: [NSString stringWithUTF8String: pId]];
 }
 
-void NeftaPlugin_LoadWithType(void *instance, int type)
-{
-    [_plugin LoadWithType: type];
-}
-
 void NeftaPlugin_LoadWithId(void *instance, const char *pId)
 {
     [_plugin LoadWithId: [NSString stringWithUTF8String: pId]];
-}
-
-void NeftaPlugin_ShowWithType(void *instance, int type)
-{
-    [_plugin ShowWithType: type];
 }
 
 void NeftaPlugin_ShowWithId(void *instance, const char *pId)
