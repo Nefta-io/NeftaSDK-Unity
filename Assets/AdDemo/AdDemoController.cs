@@ -33,7 +33,10 @@ namespace AdDemo
             _neftaAds.Enable(true);
             
             _neftaAds.EnableBanner(BannerAdUnitId, true);
-
+            
+            Nefta.Adapter.Instance.SetCustomStringParameter("3434234238554", "screen", "home");
+            Nefta.Adapter.Instance.SetCustomFloatParameter("3434234238554", "bidfloor", 0.42f);
+            
             Nefta.Adapter.Instance.Record(new ProgressionEvent(Type.Task, Status.Fail) { _name = "hard boss"});
             Nefta.Adapter.Instance.Record(new ReceiveEvent(ResourceCategory.Experience) { _method = ReceiveMethod.Create, _value = 123, _name = "abc"}); 
 

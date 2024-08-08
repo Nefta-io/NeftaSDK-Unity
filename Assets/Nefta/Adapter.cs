@@ -41,6 +41,26 @@ namespace Nefta
             return Instance;
         }
 
+        public void SetCustomPublisherUserId(string userId)
+        {
+            Plugin.SetPublisherUserId(userId);
+        }
+
+        public void SetCustomStringParameter(string placementId, string key, string value)
+        {
+            Plugin.SetCustomStringParameter(placementId, key, value);
+        }
+        
+        public void SetCustomFloatParameter(string placementId, string key, float value)
+        {
+            Plugin.SetCustomFloatParameter(placementId, key, value);
+        }
+
+        public string GetPartialBidRequest(string placementId)
+        {
+            return Plugin.GetPartialBidRequest(placementId);
+        }
+
         public void Record(GameEvent gameEvent)
         {
             _eventBuilder.Clear();

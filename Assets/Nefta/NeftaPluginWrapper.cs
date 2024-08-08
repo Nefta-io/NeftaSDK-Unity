@@ -89,12 +89,24 @@ namespace Nefta
 
         [DllImport ("__Internal")]
         private static extern void NeftaPlugin_SetPlacementModeWithId(IntPtr instance, string pId, int mode);
+
+        [DllImport ("__Internal")]
+        private static extern void NeftaPlugin_SetCustomStringParameter(IntPtr instance, string pId, string key, string value);
+
+        [DllImport ("__Internal")]
+        private static extern void NeftaPlugin_SetCustomFloatParameter(IntPtr instance, string pId, string key, float value);
+
+        [DllImport ("__Internal")]
+        private static extern string NeftaPlugin_GetPartialBidRequest(IntPtr instance, string pid);
             
         [DllImport ("__Internal")]
         private static extern void NeftaPlugin_BidWithId(IntPtr instance, string pId);
             
         [DllImport ("__Internal")]
         private static extern void NeftaPlugin_LoadWithId(IntPtr instance, string pId);
+
+        [DllImport ("__Internal")]
+        private static extern void NeftaPlugin_LoadWithBidResponse(IntPtr instance, string pId, string bidResponse);
 
         [DllImport ("__Internal")]
         private static extern void NeftaPlugin_ShowWithId(IntPtr instance, string pId);
@@ -237,6 +249,41 @@ namespace Nefta
             _plugin.Call("SetPlacementMode", id, mode);
 #endif
         }
+
+        public void SetCustomStringParameter(string placementId, string key, string value)
+        {
+#if UNITY_EDITOR
+            _plugin.SetCustomStringParameter(placementId, key, value);
+#elif UNITY_IOS
+            NeftaPlugin_SetCustomStringParameter(_plugin, placementId, key, value);
+#elif UNITY_ANDROID
+            _plugin.Call("SetCustomStringParameter", placementId, key, value);
+#endif
+        }
+        
+        public void SetCustomFloatParameter(string placementId, string key, float value)
+        {
+#if UNITY_EDITOR
+            _plugin.SetCustomFloatParameter(placementId, key, value);
+#elif UNITY_IOS
+            NeftaPlugin_SetCustomFloatParameter(_plugin, placementId, key, value);
+#elif UNITY_ANDROID
+            _plugin.Call("SetCustomFloatParameter", placementId, key, value);
+#endif
+        }
+        
+        public string GetPartialBidRequest(string placementId)
+        {
+            string partialBid = null;
+#if UNITY_EDITOR
+            partialBid = _plugin.GetPartialBidRequest(placementId);
+#elif UNITY_IOS
+            partialBid = NeftaPlugin_GetPartialBidRequest(_plugin, placementId);
+#elif UNITY_ANDROID
+            partialBid = _plugin.Call<string>("GetPartialBidRequestAsString", placementId);
+#endif
+            return partialBid;
+        }
         
         public void Bid(string id)
         {
@@ -268,6 +315,17 @@ namespace Nefta
             NeftaPlugin_LoadWithId(_plugin, id);
 #elif UNITY_ANDROID
             _plugin.Call("Load", id);
+#endif
+        }
+
+        public void LoadWithBidResponse(string id, string bidResponse)
+        {
+#if UNITY_EDITOR
+            NeftaPlugin.Instance.LoadWithBidResponse(id, bidResponse);
+#elif UNITY_IOS
+            NeftaPlugin_LoadWithBidResponse(_plugin, id, bidResponse);
+#elif UNITY_ANDROID
+            _plugin.Call("LoadWithBidResponse", id, bidResponse);
 #endif
         }
 

@@ -15,7 +15,6 @@ namespace Nefta.Ads
                 OnLoadFail,
                 OnLoad,
                 OnShow,
-                OnBannerChange,
                 OnClick,
                 OnReward,
                 OnClose
@@ -45,7 +44,6 @@ namespace Nefta.Ads
         public Action<Placement, string> OnLoadFail;
         public Action<Placement> OnLoad;
         public Action<Placement> OnShow;
-        public Action<Placement> OnBannerChange;
         public Action<Placement> OnClick;
         public Action<Placement> OnClose;
         public Action<Placement> OnUserRewarded;
@@ -64,7 +62,6 @@ namespace Nefta.Ads
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeChange;
 #endif
-
             return Instance;
         }
 
@@ -72,11 +69,6 @@ namespace Nefta.Ads
         {
             _adapter.Plugin.RegisterListener(this);
             _adapter.Plugin.EnableAds(enable);
-        }
-
-        public void SetPublisherUserId(string publisherUserId)
-        {
-            _adapter.Plugin.SetPublisherUserId(publisherUserId);
         }
 
         public void EnableBanner(string placementId, bool enable)
@@ -112,17 +104,9 @@ namespace Nefta.Ads
             _adapter.Plugin.Load(placementId);
         }
 
-        public bool IsPlacementReady(Placement.Type type)
+        public void LoadWithBidResponse(string placementId, string bidResponse)
         {
-            foreach (var placement in Placements)
-            {
-                if (placement.Value._type == type && placement.Value.CanShow)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            _adapter.Plugin.LoadWithBidResponse(placementId, bidResponse);
         }
         
         public bool IsPlacementReady(string placementId)
@@ -328,9 +312,6 @@ namespace Nefta.Ads
                             break;
                         case Callback.Actions.OnShow:
                             OnShow?.Invoke(callback._placement);
-                            break;
-                        case Callback.Actions.OnBannerChange:
-                            OnBannerChange?.Invoke(callback._placement);
                             break;
                         case Callback.Actions.OnClick:
                             OnClick?.Invoke(callback._placement);
