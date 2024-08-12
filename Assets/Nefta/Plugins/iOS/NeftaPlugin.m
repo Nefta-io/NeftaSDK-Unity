@@ -30,11 +30,11 @@ extern "C" {
     void NeftaPlugin_EnableBannerWithId(void *instance, const char *pId, Boolean enable);
     void NeftaPlugin_SetPlacementPositionWithId(void *instance, const char *pId, int position);
     void NeftaPlugin_SetPlacementModeWithId(void *instance, const char *pId, int mode);
-    void NeftaPlugin_SetCustomStringParameter(void *instance, const char *pId, const char *key, const char *value);
-    void NeftaPlugin_SetCustomFloatParameter(void *instance, const char *pId, const char *key, float value);
+    void NeftaPlugin_SetFloorPrice(void *instance, const char *pId, float floorPrice);
     const char * NeftaPlugin_GetPartialBidRequest(void *instance, const char *pId);
     void NeftaPlugin_BidWithId(void *instance, const char *pId);
     void NeftaPlugin_LoadWithId(void *instance, const char *pId);
+    void NeftaPlugin_LoadWithBidResponse(void *instance, const char *pId, const char *bidResponse);
     void NeftaPlugin_ShowWithId(void *instance, const char *pId);
     void NeftaPlugin_Close(void *instance);
     void NeftaPlugin_CloseWithId(void *instance, const char *pId);
@@ -123,14 +123,9 @@ void NeftaPlugin_SetPlacementPositionWithId(void *instance, const char *pId, int
     [_plugin SetPlacementPositionWithId: [NSString stringWithUTF8String:pId] position: position];
 }
 
-void NeftaPlugin_SetCustomStringParameter(void *instance, const char *pId, const char *key, const char *value)
+void NeftaPlugin_SetFloorPrice(void *instance, const char *pId, float floorPrice)
 {
-    [_plugin SetCustomStringParameterWithId: [NSString stringWithUTF8String:pId] key: [NSString stringWithUTF8String:key] value: [NSString stringWithUTF8String:value]];
-}
-
-void NeftaPlugin_SetCustomFloatParameter(void *instance, const char *pId, const char *key, float value)
-{
-    [_plugin SetCustomFloatParameterWithId: [NSString stringWithUTF8String:pId] key: [NSString stringWithUTF8String:key] value: value];
+    [_plugin SetFloorPriceWithId: [NSString stringWithUTF8String:pId] floorPrice: floorPrice];
 }
 
 void NeftaPlugin_SetPlacementModeWithId(void *instance, const char *pId, int mode)
@@ -139,6 +134,9 @@ void NeftaPlugin_SetPlacementModeWithId(void *instance, const char *pId, int mod
 }
 
 const char * NeftaPlugin_GetPartialBidRequest(void *instance, const char *pId) {
+    if (pId == NULL) {
+        return NULL;
+    }
     const char *string = [[_plugin GetPartialBidRequestAsString: [NSString stringWithUTF8String: pId]] UTF8String];
     char *returnString = (char *)malloc(strlen(string) + 1);
     strcpy(returnString, string);

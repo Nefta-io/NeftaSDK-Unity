@@ -252,9 +252,9 @@ namespace Nefta
 #if UNITY_EDITOR
             _plugin.SetFloorPrice(placementId, floorPrice);
 #elif UNITY_IOS
-            NeftaPlugin_SetFloorPrice(_plugin, floorPrice);
+            NeftaPlugin_SetFloorPrice(_plugin, placementId, floorPrice);
 #elif UNITY_ANDROID
-            _plugin.Call("SetFloorPrice", floorPrice);
+            _plugin.Call("SetFloorPrice", placementId, floorPrice);
 #endif
         }
         
