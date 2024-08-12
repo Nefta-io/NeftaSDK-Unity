@@ -91,10 +91,7 @@ namespace Nefta
         private static extern void NeftaPlugin_SetPlacementModeWithId(IntPtr instance, string pId, int mode);
 
         [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_SetCustomStringParameter(IntPtr instance, string pId, string key, string value);
-
-        [DllImport ("__Internal")]
-        private static extern void NeftaPlugin_SetCustomFloatParameter(IntPtr instance, string pId, string key, float value);
+        private static extern void NeftaPlugin_SetFloorPrice(IntPtr instance, string pId, float floorPrice);
 
         [DllImport ("__Internal")]
         private static extern string NeftaPlugin_GetPartialBidRequest(IntPtr instance, string pid);
@@ -250,25 +247,14 @@ namespace Nefta
 #endif
         }
 
-        public void SetCustomStringParameter(string placementId, string key, string value)
+        public void SetFloorPrice(string placementId, float floorPrice)
         {
 #if UNITY_EDITOR
-            _plugin.SetCustomStringParameter(placementId, key, value);
+            _plugin.SetFloorPrice(placementId, floorPrice);
 #elif UNITY_IOS
-            NeftaPlugin_SetCustomStringParameter(_plugin, placementId, key, value);
+            NeftaPlugin_SetFloorPrice(_plugin, floorPrice);
 #elif UNITY_ANDROID
-            _plugin.Call("SetCustomStringParameter", placementId, key, value);
-#endif
-        }
-        
-        public void SetCustomFloatParameter(string placementId, string key, float value)
-        {
-#if UNITY_EDITOR
-            _plugin.SetCustomFloatParameter(placementId, key, value);
-#elif UNITY_IOS
-            NeftaPlugin_SetCustomFloatParameter(_plugin, placementId, key, value);
-#elif UNITY_ANDROID
-            _plugin.Call("SetCustomFloatParameter", placementId, key, value);
+            _plugin.Call("SetFloorPrice", floorPrice);
 #endif
         }
         

@@ -46,14 +46,9 @@ namespace Nefta
             Plugin.SetPublisherUserId(userId);
         }
 
-        public void SetCustomStringParameter(string placementId, string key, string value)
+        public void SetFloorPrice(string placementId, float floorPrice)
         {
-            Plugin.SetCustomStringParameter(placementId, key, value);
-        }
-        
-        public void SetCustomFloatParameter(string placementId, string key, float value)
-        {
-            Plugin.SetCustomFloatParameter(placementId, key, value);
+            Plugin.SetFloorPrice(placementId, floorPrice);
         }
 
         public string GetPartialBidRequest(string placementId)
