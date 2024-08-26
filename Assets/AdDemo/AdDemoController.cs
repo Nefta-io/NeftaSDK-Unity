@@ -18,10 +18,19 @@ namespace AdDemo
         private NeftaAds _neftaAds;
         private bool _isBannerShown;
         private Dictionary<string, PlacementController> _placementControllers;
+        private DebugServer _debugServer;
         
         private void Awake()
         {
             _neftaAds = NeftaAds.Init();
+            var debugParams = GetDebugParameters();
+            if (debugParams != null)
+            {
+                _neftaAds.PluginWrapper.SetOverride(debugParams[0]);
+                
+                _debugServer = new DebugServer();
+                _debugServer.Init(debugParams[2], debugParams[1]);
+            }
             _neftaAds.OnReady = OnReady;
             _neftaAds.OnBid = OnBid;
             _neftaAds.OnLoadStart = OnLoadStart;
@@ -34,16 +43,20 @@ namespace AdDemo
             
             _neftaAds.EnableBanner(BannerAdUnitId, true);
             
-            Nefta.Adapter.Instance.SetFloorPrice("3434234238554", 0.42f);
+            _neftaAds.SetFloorPrice("3434234238554", 0.42f);
             
-            Nefta.Adapter.Instance.Record(new ProgressionEvent(Type.Task, Status.Fail) { _name = "hard boss"});
-            Nefta.Adapter.Instance.Record(new ReceiveEvent(ResourceCategory.Experience) { _method = ReceiveMethod.Create, _value = 123, _name = "abc"}); 
-
+            _neftaAds.Record(new ProgressionEvent(Type.Task, Status.Fail) { _name = "hard boss"});
+            _neftaAds.Record(new ReceiveEvent(ResourceCategory.Experience) { _method = ReceiveMethod.Create, _value = 123, _name = "abc"});
+            
             AdjustOffsets(0);
         }
 
         private void Update()
         {
+            if (_debugServer != null)
+            {
+                _debugServer.OnUpdate();
+            }
             if (_neftaAds != null)
             {
                 _neftaAds.OnUpdate();
@@ -110,6 +123,45 @@ namespace AdDemo
         {
             var topObstruction = Screen.height - Screen.safeArea.height - Screen.safeArea.y;
             _contentRect.offsetMax = new Vector2(0, -(topObstruction + bannerHeight) / Screen.height) * ((RectTransform)transform).rect.size.y;
+        }
+
+        private string[] GetDebugParameters()
+        {
+            string root = null;
+            string dmIp = null;
+            string serial = null;
+#if UNITY_EDITOR
+            root = "localhost";
+            dmIp = "localhost";
+            serial = "sim4";
+#elif UNITY_IOS
+            string[] args = System.Environment.GetCommandLineArgs();
+            if (args.Length > 1)
+            {
+                root = args[1];
+            }
+            if (args.Length > 2)
+            {
+                dmIp = args[2];
+            }
+            if (args.Length > 3)
+            {
+                serial = args[3];
+            }
+#elif UNITY_ANDROID
+            AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+            AndroidJavaObject currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+            AndroidJavaObject intent = currentActivity.Call<AndroidJavaObject>("getIntent");
+            root = intent.Call<string>("getStringExtra", "override");
+            dmIp = intent.Call<string>("getStringExtra", "dmIp");
+            serial = intent.Call<string>("getStringExtra", "serial");
+#endif
+            if (!string.IsNullOrEmpty(root))
+            {
+                return new []{ root, dmIp, serial };
+            }
+
+            return null;
         }
     }
 }

@@ -118,6 +118,9 @@ namespace Nefta
         private static extern void NeftaPlugin_Mute(IntPtr instance, bool mute);
 
         [DllImport ("__Internal")]
+        private static extern void NeftaPlugin_SetOverride(IntPtr instance, string root);
+
+        [DllImport ("__Internal")]
         private static extern string NeftaPlugin_GetNuid(IntPtr instance, bool present);
 
         private IntPtr _plugin;
@@ -356,6 +359,16 @@ namespace Nefta
             NeftaPlugin_Mute(_plugin, mute);
 #elif UNITY_ANDROID
             _plugin.Call<string>("Mute", mute);
+#endif
+        }
+        
+        public void SetOverride(string root) {
+#if UNITY_EDITOR
+         
+#elif UNITY_IOS
+            NeftaPlugin_SetOverride(_plugin, root);
+#elif UNITY_ANDROID
+            _plugin.Call("SetOverride", root);
 #endif
         }
     }

@@ -1,5 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
+using Nefta.Data;
+using Nefta.Events;
+using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Nefta.Ads
 {
@@ -32,7 +37,8 @@ namespace Nefta.Ads
             }
         }
         
-        private Adapter _adapter;
+        private StringBuilder _eventBuilder;
+        
         private Queue<Callback> _callbackQueue;
         public static NeftaAds Instance { get; private set; }
 
@@ -49,26 +55,42 @@ namespace Nefta.Ads
         public Action<Placement> OnUserRewarded;
         
         public bool IsReady => Placements != null;
+        
+        public NeftaPluginWrapper PluginWrapper { get; private set; }
 
         public static NeftaAds Init()
         {
-            if (Instance == null)
+            if (Instance != null)
             {
-                Instance = new NeftaAds();
-                Instance._adapter = Adapter.Init();
-                Instance._callbackQueue = new Queue<Callback>();
-                Instance.Placements = new Dictionary<string, Placement>();
+                return Instance;
+
             }
+            
+            Instance = new NeftaAds();
+            Instance._callbackQueue = new Queue<Callback>();
+            Instance.Placements = new Dictionary<string, Placement>();
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeChange;
 #endif
+            var configuration = Resources.Load<NeftaConfiguration>(NeftaConfiguration.FileName);
+            Assert.IsNotNull(configuration, "Missing NeftaConfiguration ScriptableObject");
+            var gameObject = new GameObject("_NeftaPlugin");
+            Instance.PluginWrapper = gameObject.AddComponent<NeftaPluginWrapper>();
+            NeftaPluginWrapper.EnableLogging(configuration._isLoggingEnabled);
+#if UNITY_IOS
+            var appId = configuration._iOSAppId;
+#else
+            var appId = configuration._androidAppId;
+#endif
+            Instance.PluginWrapper.Init(appId);
+            Instance._eventBuilder = new StringBuilder(128);
             return Instance;
         }
 
         public void Enable(bool enable)
         {
-            _adapter.Plugin.RegisterListener(this);
-            _adapter.Plugin.EnableAds(enable);
+            PluginWrapper.RegisterListener(this);
+            PluginWrapper.EnableAds(enable);
         }
 
         public void EnableBanner(string placementId, bool enable)
@@ -81,32 +103,47 @@ namespace Nefta.Ads
                     _callbackQueue.Enqueue(new Callback(Callback.Actions.OnShow, placement));
                 }
             }
-            _adapter.Plugin.EnableBanner(placementId, enable);
+            PluginWrapper.EnableBanner(placementId, enable);
         }
 
         public void SetPlacementPosition(string placementId, Placement.Position position)
         {
-            _adapter.Plugin.SetPlacementPosition(placementId, (int) position);   
+            PluginWrapper.SetPlacementPosition(placementId, (int) position);   
         }
 
         public void SetPlacementMode(string placementId, Placement.Mode mode)
         {
-            _adapter.Plugin.SetPlacementMode(placementId, (int) mode);   
+            PluginWrapper.SetPlacementMode(placementId, (int) mode);   
         }
         
+        public void SetCustomPublisherUserId(string userId)
+        {
+            PluginWrapper.SetPublisherUserId(userId);
+        }
+
+        public void SetFloorPrice(string placementId, float floorPrice)
+        {
+            PluginWrapper.SetFloorPrice(placementId, floorPrice);
+        }
+
         public void Bid(string placementId)
         {
-            _adapter.Plugin.Bid(placementId);
+            PluginWrapper.Bid(placementId);
+        }
+        
+        public string GetPartialBidRequest(string placementId)
+        {
+            return PluginWrapper.GetPartialBidRequest(placementId);
         }
 
         public void Load(string placementId)
         {
-            _adapter.Plugin.Load(placementId);
+            PluginWrapper.Load(placementId);
         }
 
         public void LoadWithBidResponse(string placementId, string bidResponse)
         {
-            _adapter.Plugin.LoadWithBidResponse(placementId, bidResponse);
+            PluginWrapper.LoadWithBidResponse(placementId, bidResponse);
         }
         
         public bool IsPlacementReady(string placementId)
@@ -121,17 +158,110 @@ namespace Nefta.Ads
         
         public void Show(string placementId)
         {
-            _adapter.Plugin.Show(placementId);
+            PluginWrapper.Show(placementId);
         }
 
         public void Close()
         {
-            _adapter.Plugin.Close();
+            PluginWrapper.Close();
         }
 
         public void Close(string placementId)
         {
-            _adapter.Plugin.Close(placementId);
+            PluginWrapper.Close(placementId);
+        }
+        
+        public void Record(GameEvent gameEvent)
+        {
+            _eventBuilder.Clear();
+            _eventBuilder.Append("{\"event_type\":\"");
+            _eventBuilder.Append(gameEvent._eventType);
+            _eventBuilder.Append("\",\"event_category\":\"");
+            _eventBuilder.Append(gameEvent._category);
+            _eventBuilder.Append("\",\"value\":");
+            _eventBuilder.Append(gameEvent._value.ToString());
+            _eventBuilder.Append(",\"event_sub_category\":\"");
+            _eventBuilder.Append(gameEvent._subCategory);
+            if (gameEvent._name != null)
+            {
+                _eventBuilder.Append("\",\"item_name\":\"");
+                _eventBuilder.Append(JavaScriptStringEncode(gameEvent._name));
+            }
+            if (gameEvent._customString != null)
+            {
+                _eventBuilder.Append("\",\"custom_publisher_payload\":\"");
+                _eventBuilder.Append(JavaScriptStringEncode(gameEvent._customString));
+            }
+            _eventBuilder.Append("\"}");
+            var eventString = _eventBuilder.ToString();
+            PluginWrapper.Record(eventString);
+        }
+        
+        private static string JavaScriptStringEncode(string value)
+        {
+            int len = value.Length;
+            bool needEncode = false;
+            char c;
+            for (int i = 0; i < len; i++)
+            {
+                c = value [i];
+
+                if (c >= 0 && c <= 31 || c == 34 || c == 39 || c == 60 || c == 62 || c == 92)
+                {
+                    needEncode = true;
+                    break;
+                }
+            }
+
+            if (!needEncode)
+            {
+                return value;
+            }
+            
+            var sb = new StringBuilder ();
+            for (int i = 0; i < len; i++)
+            {
+                c = value [i];
+                if (c >= 0 && c <= 7 || c == 11 || c >= 14 && c <= 31 || c == 39 || c == 60 || c == 62)
+                {
+                    sb.AppendFormat ("\\u{0:x4}", (int)c);
+                }
+                else switch ((int)c)
+                {
+                    case 8:
+                        sb.Append ("\\b");
+                        break;
+
+                    case 9:
+                        sb.Append ("\\t");
+                        break;
+
+                    case 10:
+                        sb.Append ("\\n");
+                        break;
+
+                    case 12:
+                        sb.Append ("\\f");
+                        break;
+
+                    case 13:
+                        sb.Append ("\\r");
+                        break;
+
+                    case 34:
+                        sb.Append ("\\\"");
+                        break;
+
+                    case 92:
+                        sb.Append ("\\\\");
+                        break;
+
+                    default:
+                        sb.Append (c);
+                        break;
+                }
+            }
+            return sb.ToString ();
         }
 
         public override void IOnReady(string configuration)
@@ -144,16 +274,18 @@ namespace Nefta.Ads
                 Placements.Clear();
                 while (index < adUnitsEnd)
                 {
-                    int idStartIndex = configuration.IndexOf("\"id\":", index, StringComparison.InvariantCulture);
-                    if (idStartIndex < 0)
+                    int idIndex = configuration.IndexOf("\"id\":", index, StringComparison.InvariantCulture);
+                    if (idIndex < 0)
                     {
                         break;
                     }
-                    idStartIndex += 6;
-                    int idLength = configuration.IndexOf("\"", idStartIndex, StringComparison.InvariantCulture) - idStartIndex;
-                    var id = configuration.Substring(idStartIndex, idLength);
+                    idIndex += 5;
+                    idIndex = configuration.IndexOf("\"", idIndex, StringComparison.InvariantCulture) + 1;
+                    int idLength = configuration.IndexOf("\"", idIndex, StringComparison.InvariantCulture) - idIndex;
+                    var id = configuration.Substring(idIndex, idLength);
                     
-                    int typeIndex = configuration.IndexOf("\"type\":", index, StringComparison.InvariantCulture) + 8;
+                    int typeIndex = configuration.IndexOf("\"type\":", index, StringComparison.InvariantCulture) + 7;
+                    typeIndex = configuration.IndexOf("\"", typeIndex, StringComparison.InvariantCulture) + 1;
                     Placement.Type adType;
                     if (configuration[typeIndex] == 'r')
                     {
@@ -285,7 +417,7 @@ namespace Nefta.Ads
                 }
             }
         }
-
+        
         public void OnUpdate()
         {
             lock (_callbackQueue)

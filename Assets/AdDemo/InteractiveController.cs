@@ -20,8 +20,6 @@ namespace AdDemo
             _loadButton.onClick.AddListener(OnLoadClick);
             _showButton.onClick.AddListener(OnShowClick);
             _closeButton.onClick.AddListener(OnCloseClick);
-
-            Debug.Log("test p: " + Nefta.Adapter.Instance.GetPartialBidRequest(placement._id));
             
             base.SetData(placement);
         }

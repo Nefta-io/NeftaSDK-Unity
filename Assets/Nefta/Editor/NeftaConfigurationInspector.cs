@@ -128,18 +128,27 @@ namespace Nefta.Editor
         
         private void GetIosVersions()
         {
-            var guids = AssetDatabase.FindAssets("NeftaPlugin_iOS");
-            if (guids.Length == 0)
+            var guids = AssetDatabase.FindAssets("NeftaPlugin");
+            string pluginPath = null;
+            foreach (var guid in guids)
             {
-                _error = "NeftaPlugin_iOS not found in project";
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                if (path.EndsWith(".m"))
+                {
+                    if (pluginPath != null)
+                    {
+                        _error = "Multiple instances of NeftaPlugin_iOS found in project";
+                        return;
+                    }
+                    pluginPath = Path.GetDirectoryName(path);
+                }
+            }
+            if (pluginPath == null)
+            {
+                _error = "iOS NeftaPlugin not found in project";
                 return;
             }
-            if (guids.Length > 1)
-            {
-                _error = "Multiple instances of NeftaPlugin_iOS found in project";
-                return;
-            }
-            var pluginPath = Path.GetDirectoryName(AssetDatabase.GUIDToAssetPath(guids[0]));
+            
             XmlDocument xmlDoc = new XmlDocument();
             xmlDoc.Load(pluginPath + "/NeftaSDK.xcframework/Info.plist");
             var dict = xmlDoc.ChildNodes[2].ChildNodes[0];
