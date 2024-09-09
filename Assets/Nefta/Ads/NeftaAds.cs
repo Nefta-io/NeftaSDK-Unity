@@ -307,7 +307,7 @@ namespace Nefta.Ads
             }
         }
 
-        public override void IOnBid(string pId, float price)
+        public override void IOnBid(string pId, float price, int expirationTime)
         {
             lock (_callbackQueue)
             {
@@ -315,6 +315,8 @@ namespace Nefta.Ads
                 {
                     placement._availableBid = price < 0 ? null : price;
                     placement._isBidding = false;
+                    placement._expirationTime = expirationTime;
+                    placement._auctionTime = Time.realtimeSinceStartup;
                     
                     _callbackQueue.Enqueue(new Callback(Callback.Actions.OnBid, placement));
                 }

@@ -35,13 +35,29 @@ namespace Nefta.Ads
         public float? _bufferBid;
         public float? _renderedBid;
         public Mode _mode;
+        public int _expirationTime;
+        public float _auctionTime;
 
         public int Width => _isShown ? _renderedWidth : 0;
 
         public int Height => _isShown ? _renderedHeight : 0;
 
         public bool CanLoad => !_isLoading;
-        public bool CanShow => _bufferBid != null && !_isLoading;
+        public bool CanShow
+        {
+            get
+            {
+                if (_bufferBid == null || _isLoading)
+                {
+                    return false;
+                }
+                if (_expirationTime > 0 && UnityEngine.Time.realtimeSinceStartup - _auctionTime > _expirationTime)
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
 
         public Placement(Type type, string id)
         {

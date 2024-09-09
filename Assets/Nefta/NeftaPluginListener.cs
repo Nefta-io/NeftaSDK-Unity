@@ -1,4 +1,7 @@
 using UnityEngine;
+#if UNITY_EDITOR
+using Nefta.Editor;
+#endif
 
 namespace Nefta
 {
@@ -14,7 +17,7 @@ namespace Nefta
 
         }
 
-        public virtual void IOnBid(string pId, float price)
+        public virtual void IOnBid(string pId, float price, int expirationTime)
         {
             
         }

@@ -16,7 +16,7 @@ extern "C" {
     UIViewController* UnityGetGLViewController();
     
     typedef void (*OnReady)(const char *configuration);
-    typedef void (*OnBid)(const char *pId, float price);
+    typedef void (*OnBid)(const char *pId, float price, int expirationTime);
     typedef void (*OnLoadFail)(const char *pId, const char *error);
     typedef void (*OnLoad)(const char *pId, int width, int height);
     typedef void (*OnChange)(const char *pId);
@@ -62,9 +62,9 @@ void NeftaPlugin_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoad
         const char *cConfiguration = [configuration UTF8String];
         onReady(cConfiguration);
     };
-    _plugin.IOnBid = ^void(NSString * _Nonnull pId, float price) {
+    _plugin.IOnBid = ^void(NSString * _Nonnull pId, float price, NSInteger expirationTime) {
         const char *cPId = [pId UTF8String];
-        onBid(cPId, price);
+        onBid(cPId, price, (int)expirationTime);
     };
     _plugin.IOnLoadStart = ^void(NSString * _Nonnull pId) {
         const char *cPId = [pId UTF8String];

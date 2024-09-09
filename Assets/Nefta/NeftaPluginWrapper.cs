@@ -1,4 +1,6 @@
-#if !UNITY_EDITOR && UNITY_IOS
+#if UNITY_EDITOR
+using Nefta.Editor;
+#elif UNITY_IOS
 using System;
 using System.Runtime.InteropServices;
 using AOT;
@@ -13,7 +15,7 @@ namespace Nefta
         private NeftaPlugin _plugin;
 #elif UNITY_IOS
         private delegate void OnReadyDelegate(string configuration);
-        private delegate void OnBidDelegate(string pId, float price);
+        private delegate void OnBidDelegate(string pId, float price, int expirationTime);
         private delegate void OnLoadFailDelegate(string pId, string error);
         private delegate void OnLoadDelegate(string pId, int width, int height);
         private delegate void OnChangeDelegate(string pId);
@@ -24,8 +26,8 @@ namespace Nefta
         }
 
         [MonoPInvokeCallback(typeof(OnBidDelegate))] 
-        private static void OnBid(string pId, float price) {
-            _listener?.IOnBid(pId, price);
+        private static void OnBid(string pId, float price, int expirationTime) {
+            _listener?.IOnBid(pId, price, expirationTime);
         }
 
         [MonoPInvokeCallback(typeof(OnChangeDelegate))] 

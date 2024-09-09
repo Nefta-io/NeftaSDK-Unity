@@ -7,7 +7,7 @@ namespace Editor
 {
     public class Builder
     {
-        private static void Build(BuildTarget target, string outPath)
+        private static void Build(BuildTarget target, string outPath, bool asProject)
         {
             var scenes = new List<string>();
             foreach (var scene in EditorBuildSettings.scenes)
@@ -22,7 +22,7 @@ namespace Editor
                 options = BuildOptions.Development | BuildOptions.StrictMode
             };
             
-            EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
+            EditorUserBuildSettings.exportAsGoogleAndroidProject = asProject;
             
             var report = BuildPipeline.BuildPlayer(options);
 
@@ -38,12 +38,17 @@ namespace Editor
 
         public static void BuildAndroid()
         {
-            Build(BuildTarget.Android, "out_Android.apk");
+            Build(BuildTarget.Android, "out_Android.apk", false);
+        }
+        
+        public static void BuildAndroidProject()
+        {
+            Build(BuildTarget.Android, "out_tAndroid", true);
         }
         
         public static void Buildios()
         {
-            Build(BuildTarget.iOS, "out_iOS");
+            Build(BuildTarget.iOS, "out_iOS", false);
         }
 
     }
