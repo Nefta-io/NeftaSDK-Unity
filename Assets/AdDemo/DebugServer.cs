@@ -95,11 +95,11 @@ namespace AdDemo
                                 adUnits += ",";
                             }
                             adUnits += "{\"id\":\"" + placement.Key + "\",\"type\":\"";
-                            if (placement.Value._type == Placement.Type.Banner)
+                            if (placement.Value._type == AdUnit.Type.Banner)
                             {
                                 adUnits += "banner\"}";
                             }
-                            else if (placement.Value._type == Placement.Type.Interstitial)
+                            else if (placement.Value._type == AdUnit.Type.Interstitial)
                             {
                                 adUnits += "interstitial\"}";
                             }

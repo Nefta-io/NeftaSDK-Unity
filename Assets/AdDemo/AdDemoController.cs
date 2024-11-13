@@ -1,18 +1,21 @@
 using System.Collections.Generic;
 using Nefta.Ads;
-using Nefta.Events;
 using UnityEngine;
 
 namespace AdDemo
 {
     public class AdDemoController : MonoBehaviour
     {
+#if UNITY_IOS
         private const string BannerAdUnitId = "5726295757422592";
+#else
+        private const string BannerAdUnitId = "5679149674921984";
+#endif
         
         [SerializeField] private RectTransform _contentRect;
         [SerializeField] private RectTransform _placementRect;
 
-        [SerializeField] private ViewController _viewPrefab;
+        [SerializeField] private BannerController bannerPrefab;
         [SerializeField] private InteractiveController _interactivePrefab;
 
         private NeftaAds _neftaAds;
@@ -26,27 +29,21 @@ namespace AdDemo
             var debugParams = GetDebugParameters();
             if (debugParams != null)
             {
-                _neftaAds.PluginWrapper.SetOverride(debugParams[0]);
+                _neftaAds.PluginWrapper.SetOverride($"http://{debugParams[0]}:8080");
                 
                 _debugServer = new DebugServer();
-                _debugServer.Init(debugParams[2], debugParams[1]);
+                _debugServer.Init(debugParams[0], debugParams[1]);
             }
             _neftaAds.OnReady = OnReady;
             _neftaAds.OnBid = OnBid;
             _neftaAds.OnLoadStart = OnLoadStart;
             _neftaAds.OnLoadFail = OnLoadFail;
             _neftaAds.OnLoad = OnLoad;
+            _neftaAds.OnShowFail = OnShowFail;
             _neftaAds.OnShow = OnShow;
             _neftaAds.OnClose = OnClose;
             _neftaAds.OnUserRewarded = OnUserRewarded;
             _neftaAds.Enable(true);
-            
-            _neftaAds.EnableBanner(BannerAdUnitId, true);
-            
-            _neftaAds.SetFloorPrice("3434234238554", 0.42f);
-            
-            _neftaAds.Record(new ProgressionEvent(Type.Task, Status.Fail) { _name = "hard boss"});
-            _neftaAds.Record(new ReceiveEvent(ResourceCategory.Experience) { _method = ReceiveMethod.Create, _value = 123, _name = "abc"});
             
             AdjustOffsets(0);
         }
@@ -63,60 +60,80 @@ namespace AdDemo
             }
         }
         
-        private void OnReady(Dictionary<string, Placement> placements)
+        private void OnReady(Dictionary<string, AdUnit> placements)
         {
             _placementControllers = new Dictionary<string, PlacementController>();
             foreach (var placement in placements)
             {
-                PlacementController prefab = placement.Value._type == Placement.Type.Banner ? _viewPrefab : _interactivePrefab;
-                var placementController = Instantiate(prefab, _placementRect);
-                placementController.SetData(placement.Value);
+                if (placement.Value._type == AdUnit.Type.Banner)
+                {
+                    var bannerController = Instantiate(bannerPrefab, _placementRect);
+                    bannerController.SetData(placement.Value, AdjustOffsets);
+                    _placementControllers.Add(placement.Key, bannerController);
+                }
+                else
+                {
+                    var interactiveController = Instantiate(_interactivePrefab, _placementRect);
+                    interactiveController.SetData(placement.Value);
+                    _placementControllers.Add(placement.Key, interactiveController);
+                }
                 
-                _placementControllers.Add(placement.Key, placementController);
+                if (placement.Key == BannerAdUnitId)
+                {
+                    _neftaAds.SetFloorPrice(BannerAdUnitId, 0.42f);
+
+                    _neftaAds.CreateBanner(BannerAdUnitId, NeftaAds.BannerPosition.Top, true);
+                    NeftaAds.Instance.Show(BannerAdUnitId);
+                }
             }
         }
 
-        private void OnBid(Placement placement)
+        private void OnBid(AdUnit adUnit)
         {
-            _placementControllers[placement._id].OnBid();
+            _placementControllers[adUnit._id].OnBid();
         }
         
-        private void OnLoadStart(Placement placement)
+        private void OnLoadStart(AdUnit adUnit)
         {
-            _placementControllers[placement._id].OnStartLoad();
+            _placementControllers[adUnit._id].OnLoadStart();
         }
         
-        private void OnLoadFail(Placement placement, string failReason)
+        private void OnLoadFail(AdUnit adUnit, string error)
         {
-            _placementControllers[placement._id].OnLoadFail();
+            _placementControllers[adUnit._id].OnLoadFail(error);
         }
 
-        private void OnLoad(Placement placement)
+        private void OnLoad(AdUnit adUnit)
         {
-            _placementControllers[placement._id].OnLoad();
+            _placementControllers[adUnit._id].OnLoad();
         }
 
-        private void OnShow(Placement placement)
+        private void OnShowFail(AdUnit adUnit, string error)
         {
-            _placementControllers[placement._id].OnShow();
-            if (placement._type == Placement.Type.Banner)
+            _placementControllers[adUnit._id].OnShowFail(error);
+        }
+
+        private void OnShow(AdUnit adUnit)
+        {
+            _placementControllers[adUnit._id].OnShow();
+            if (adUnit._type == AdUnit.Type.Banner)
             {
-                AdjustOffsets(placement.Height);
+                AdjustOffsets(adUnit.Height);
             }
         }
 
-        private void OnClose(Placement placement)
+        private void OnClose(AdUnit adUnit)
         {
-            _placementControllers[placement._id].OnClose();
-            if (placement._type == Placement.Type.Banner)
+            _placementControllers[adUnit._id].OnClose();
+            if (adUnit._type == AdUnit.Type.Banner)
             {
-                AdjustOffsets(placement.Height);
+                AdjustOffsets(0);
             }
         }
 
-        private void OnUserRewarded(Placement placement)
+        private void OnUserRewarded(AdUnit adUnit)
         {
-            Debug.Log($"OnUserRewarded for placement {placement._id}");
+            Debug.Log($"OnUserRewarded for placement {adUnit._id}");
         }
         
         private void AdjustOffsets(int bannerHeight)
@@ -128,12 +145,10 @@ namespace AdDemo
         private string[] GetDebugParameters()
         {
             string root = null;
-            string dmIp = null;
             string serial = null;
 #if UNITY_EDITOR
-            root = "localhost";
-            dmIp = "localhost";
-            serial = "sim4";
+            root = "192.168.0.223";
+            serial = "emulator-sim-4";
 #elif UNITY_IOS
             string[] args = System.Environment.GetCommandLineArgs();
             if (args.Length > 1)
@@ -142,23 +157,18 @@ namespace AdDemo
             }
             if (args.Length > 2)
             {
-                dmIp = args[2];
-            }
-            if (args.Length > 3)
-            {
-                serial = args[3];
+                serial = args[2];
             }
 #elif UNITY_ANDROID
             AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
             AndroidJavaObject currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
             AndroidJavaObject intent = currentActivity.Call<AndroidJavaObject>("getIntent");
             root = intent.Call<string>("getStringExtra", "override");
-            dmIp = intent.Call<string>("getStringExtra", "dmIp");
             serial = intent.Call<string>("getStringExtra", "serial");
 #endif
             if (!string.IsNullOrEmpty(root))
             {
-                return new []{ root, dmIp, serial };
+                return new[]{ root, serial };
             }
 
             return null;

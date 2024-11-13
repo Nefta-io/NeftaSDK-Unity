@@ -1,4 +1,5 @@
 using Nefta.Ads;
+using Nefta.Events;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,79 +10,79 @@ namespace AdDemo
         [SerializeField] private Text _placementIdText;
         [SerializeField] private Text _placementTypeText;
         
-        [SerializeField] private Text _availableBidText;
-        [SerializeField] private Text _bufferBidText;
-        [SerializeField] private Text _renderedBidText;
-        
-        protected Placement _placement;
-
-        public virtual void SetData(Placement placement)
+        [SerializeField] private Text _statusText;
+        protected AdUnit AdUnit;
+        public virtual void SetData(AdUnit adUnit)
         {
-            _placement = placement;
+            AdUnit = adUnit;
 
-            _placementIdText.text = placement._id;
-            _placementTypeText.text = placement._type.ToString();
-            
-            SyncUi();
-        }
+            _placementIdText.text = adUnit._id;
+            _placementTypeText.text = adUnit._type.ToString();
 
-        public void OnBid()
-        {
-            SyncUi();
-        }
-
-        public void OnStartLoad()
-        {
-            SyncUi();
+            _statusText.text = "";
         }
         
-        public void OnLoadFail()
+        protected virtual void OnBidClick()
         {
-            SyncUi();
+            GameEvent gameEvent = null;
+            int value = Random.Range(0, 101);
+            if (AdUnit._type == AdUnit.Type.Banner)
+            {
+                var type = (Type) Random.Range(0, 7);
+                var status = (Status)Random.Range(0, 3);
+                var source = (Source)Random.Range(0, 7);
+                gameEvent = new ProgressionEvent(type, status) { _source = source, _name = $"progression_{type}_{status} {source} {value}" };
+            }
+            else if (AdUnit._type == AdUnit.Type.Interstitial)
+            {
+                ResourceCategory category = (ResourceCategory) Random.Range(0, 9);
+                ReceiveMethod method = (ReceiveMethod)Random.Range(0, 8);
+                gameEvent = new ReceiveEvent(category) { _method = method, _name = $"receive_{category} {method} {value}" };
+            }
+            else
+            {
+                ResourceCategory category = (ResourceCategory) Random.Range(0, 9);
+                SpendMethod method = (SpendMethod)Random.Range(0, 8);
+                gameEvent = new SpendEvent(category) { _method = method, _name = $"spend_{category} {method} {value}" };
+            }
+            gameEvent._value = value;
+            
+            NeftaAds.Instance.Record(gameEvent);
         }
 
-        public void OnLoad()
+        public virtual void OnBid()
         {
-            SyncUi();
+            _statusText.text = "OnBid";
         }
 
-        public void OnShow()
+        public virtual void OnLoadStart()
         {
-            SyncUi();
-        }
-
-        public void OnBannerChange()
-        {
-            SyncUi();
-        }
-
-        public void OnClose()
-        {
-            SyncUi();
+            _statusText.text = "OnLoadStart";
         }
         
-        protected virtual void SyncUi()
+        public virtual void OnLoadFail(string error)
         {
-            string bid = "Available Bid:";
-            if (_placement._availableBid != null)
-            {
-                bid += $"[available ({_placement._availableBid.Value})]";
-            }
-            _availableBidText.text = bid;
-            
-            bid = "Buffer Bid:";
-            if (_placement._bufferBid != null)
-            {
-                bid += $"[loaded ({_placement._bufferBid.Value})]";
-            }
-            _bufferBidText.text = bid;
-            
-            bid = "Rendered Bid: ";
-            if (_placement._renderedBid != null)
-            {
-                bid += $"[rendering ({_placement._renderedBid.Value})]";
-            }
-            _renderedBidText.text = bid;
+            _statusText.text = $"OnLoadFail: {error}";
+        }
+
+        public virtual void OnLoad()
+        {
+            _statusText.text = "OnLoad";
+        }
+
+        public virtual void OnShow()
+        {
+            _statusText.text = "OnShow";
+        }
+        
+        public virtual void OnShowFail(string error)
+        {
+            _statusText.text = $"OnShowFail {error}";
+        }
+
+        public virtual void OnClose()
+        {
+            _statusText.text = "OnClose";
         }
     }
 }

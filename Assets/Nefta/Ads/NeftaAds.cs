@@ -19,6 +19,7 @@ namespace Nefta.Ads
                 OnLoadStart,
                 OnLoadFail,
                 OnLoad,
+                OnShowFail,
                 OnShow,
                 OnClick,
                 OnReward,
@@ -26,33 +27,39 @@ namespace Nefta.Ads
             }
             
             public Actions _action;
-            public Placement _placement;
+            public AdUnit AdUnit;
             public string _data;
 
-            public Callback(Actions action, Placement placement, string data=null)
+            public Callback(Actions action, AdUnit adUnit, string data=null)
             {
                 _action = action;
-                _placement = placement;
+                AdUnit = adUnit;
                 _data = data;
             }
         }
-        
-        private StringBuilder _eventBuilder;
+
+        public enum BannerPosition
+        {
+            None = 0,
+            Top = 1,
+            Bottom = 2
+        }
         
         private Queue<Callback> _callbackQueue;
         public static NeftaAds Instance { get; private set; }
 
-        public Dictionary<string, Placement> Placements { get; private set; }
+        public Dictionary<string, AdUnit> Placements { get; private set; }
         
-        public Action<Dictionary<string, Placement>> OnReady;
-        public Action<Placement> OnBid;
-        public Action<Placement> OnLoadStart;
-        public Action<Placement, string> OnLoadFail;
-        public Action<Placement> OnLoad;
-        public Action<Placement> OnShow;
-        public Action<Placement> OnClick;
-        public Action<Placement> OnClose;
-        public Action<Placement> OnUserRewarded;
+        public Action<Dictionary<string, AdUnit>> OnReady;
+        public Action<AdUnit> OnBid;
+        public Action<AdUnit> OnLoadStart;
+        public Action<AdUnit, string> OnLoadFail;
+        public Action<AdUnit> OnLoad;
+        public Action<AdUnit, string> OnShowFail;
+        public Action<AdUnit> OnShow;
+        public Action<AdUnit> OnClick;
+        public Action<AdUnit> OnClose;
+        public Action<AdUnit> OnUserRewarded;
         
         public bool IsReady => Placements != null;
         
@@ -68,7 +75,7 @@ namespace Nefta.Ads
             
             Instance = new NeftaAds();
             Instance._callbackQueue = new Queue<Callback>();
-            Instance.Placements = new Dictionary<string, Placement>();
+            Instance.Placements = new Dictionary<string, AdUnit>();
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeChange;
 #endif
@@ -82,38 +89,18 @@ namespace Nefta.Ads
 #else
             var appId = configuration._androidAppId;
 #endif
-            Instance.PluginWrapper.Init(appId);
-            Instance._eventBuilder = new StringBuilder(128);
+            Instance.PluginWrapper.Init(appId, Instance);
             return Instance;
         }
 
         public void Enable(bool enable)
         {
-            PluginWrapper.RegisterListener(this);
             PluginWrapper.EnableAds(enable);
         }
 
-        public void EnableBanner(string placementId, bool enable)
+        public void CreateBanner(string placementId, BannerPosition position, bool autoRefresh)
         {
-            if (Placements.TryGetValue(placementId, out var placement))
-            {
-                lock (_callbackQueue)
-                {
-                    placement._isShown = enable;
-                    _callbackQueue.Enqueue(new Callback(Callback.Actions.OnShow, placement));
-                }
-            }
-            PluginWrapper.EnableBanner(placementId, enable);
-        }
-
-        public void SetPlacementPosition(string placementId, Placement.Position position)
-        {
-            PluginWrapper.SetPlacementPosition(placementId, (int) position);   
-        }
-
-        public void SetPlacementMode(string placementId, Placement.Mode mode)
-        {
-            PluginWrapper.SetPlacementMode(placementId, (int) mode);   
+            PluginWrapper.CreateBanner(placementId, (int)position, autoRefresh);
         }
         
         public void SetCustomPublisherUserId(string userId)
@@ -158,12 +145,26 @@ namespace Nefta.Ads
         
         public void Show(string placementId)
         {
+            if (Placements.TryGetValue(placementId, out var adUnit))
+            {
+                if (adUnit._state == AdUnit.State.Hidden)
+                {
+                    adUnit._state = AdUnit.State.Showing;
+                }
+            }
             PluginWrapper.Show(placementId);
         }
 
-        public void Close()
+        public void Hide(string placementId)
         {
-            PluginWrapper.Close();
+            if (Placements.TryGetValue(placementId, out var adUnit))
+            {
+                if (adUnit._state == AdUnit.State.Showing)
+                {
+                    adUnit._state = AdUnit.State.Hidden;
+                    PluginWrapper.Hide(placementId);
+                }
+            }
         }
 
         public void Close(string placementId)
@@ -173,28 +174,17 @@ namespace Nefta.Ads
         
         public void Record(GameEvent gameEvent)
         {
-            _eventBuilder.Clear();
-            _eventBuilder.Append("{\"event_type\":\"");
-            _eventBuilder.Append(gameEvent._eventType);
-            _eventBuilder.Append("\",\"event_category\":\"");
-            _eventBuilder.Append(gameEvent._category);
-            _eventBuilder.Append("\",\"value\":");
-            _eventBuilder.Append(gameEvent._value.ToString());
-            _eventBuilder.Append(",\"event_sub_category\":\"");
-            _eventBuilder.Append(gameEvent._subCategory);
-            if (gameEvent._name != null)
+            var name = gameEvent._name;
+            if (name != null)
             {
-                _eventBuilder.Append("\",\"item_name\":\"");
-                _eventBuilder.Append(JavaScriptStringEncode(gameEvent._name));
+                name = JavaScriptStringEncode(gameEvent._name);
             }
-            if (gameEvent._customString != null)
+            var customPayload = gameEvent._customString;
+            if (customPayload != null)
             {
-                _eventBuilder.Append("\",\"custom_publisher_payload\":\"");
-                _eventBuilder.Append(JavaScriptStringEncode(gameEvent._customString));
+                customPayload = JavaScriptStringEncode(gameEvent._customString);
             }
-            _eventBuilder.Append("\"}");
-            var eventString = _eventBuilder.ToString();
-            PluginWrapper.Record(eventString);
+            PluginWrapper.Record(gameEvent._eventType, gameEvent._category, gameEvent._subCategory, name, gameEvent._value, customPayload);
         }
         
         private static string JavaScriptStringEncode(string value)
@@ -286,20 +276,21 @@ namespace Nefta.Ads
                     
                     int typeIndex = configuration.IndexOf("\"type\":", index, StringComparison.InvariantCulture) + 7;
                     typeIndex = configuration.IndexOf("\"", typeIndex, StringComparison.InvariantCulture) + 1;
-                    Placement.Type adType;
+                    AdUnit.Type adType;
                     if (configuration[typeIndex] == 'r')
                     {
-                        adType = Placement.Type.VideoAd;
+                        adType = AdUnit.Type.VideoAd;
                     }
                     else if (configuration[typeIndex] == 'i')
                     {
-                        adType = Placement.Type.Interstitial;
+                        adType = AdUnit.Type.Interstitial;
                     }
                     else
                     {
-                        adType = Placement.Type.Banner;
+                        adType = AdUnit.Type.Banner;
                     }
-                    Placements.Add(id, new Placement(adType, id));
+                    
+                    Placements.Add(id, new AdUnit(adType, id));
                     
                     index = typeIndex + 1;
                 }
@@ -313,8 +304,8 @@ namespace Nefta.Ads
             {
                 if (Placements.TryGetValue(pId, out var placement))
                 {
-                    placement._availableBid = price < 0 ? null : price;
-                    placement._isBidding = false;
+                    placement._bid = price;
+                    placement._state = price < 0 ? AdUnit.State.Initialized : AdUnit.State.ReadyToLoad;
                     placement._expirationTime = expirationTime;
                     placement._auctionTime = Time.realtimeSinceStartup;
                     
@@ -329,24 +320,23 @@ namespace Nefta.Ads
             {
                 if (Placements.TryGetValue(pId, out var placement))
                 {
-                    placement._bufferBid = placement._availableBid;
-                    placement._availableBid = null;
-                    placement._isLoading = true;
-                    
-                    _callbackQueue.Enqueue(new Callback(Callback.Actions.OnLoadStart, placement));
+                    if (placement._state < AdUnit.State.Ready)
+                    {
+                        placement._state = AdUnit.State.Loading;
+                        _callbackQueue.Enqueue(new Callback(Callback.Actions.OnLoadStart, placement));
+                    }
                 }
             }
         }
         
-        public override void IOnLoadFail(string pId, string error)
+        public override void IOnLoadFail(string pId, int code, string error)
         {
             lock (_callbackQueue)
             {
                 if (Placements.TryGetValue(pId, out var placement))
                 {
-                    placement._isLoading = false;
-                    placement._bufferBid = null;
-                    
+                    placement._state = AdUnit.State.Expired;
+                    placement._bid = -1;
                     _callbackQueue.Enqueue(new Callback(Callback.Actions.OnLoadFail, placement, error));
                 }
             }
@@ -360,9 +350,20 @@ namespace Nefta.Ads
                 {
                     placement._renderedWidth = width;
                     placement._renderedHeight = height;
-                    placement._isLoading = false;
-                    
+                    placement._state = AdUnit.State.Ready;
                     _callbackQueue.Enqueue(new Callback(Callback.Actions.OnLoad, placement));
+                }
+            }
+        }
+        
+        public override void IOnShowFail(string pId, int code, string error)
+        {
+            lock (_callbackQueue)
+            {
+                if (Placements.TryGetValue(pId, out var placement))
+                {
+                    placement._state = AdUnit.State.Expired;
+                    _callbackQueue.Enqueue(new Callback(Callback.Actions.OnShowFail, placement, error));
                 }
             }
         }
@@ -373,10 +374,7 @@ namespace Nefta.Ads
             {
                 if (Placements.TryGetValue(pId, out var placement))
                 {
-                    placement._renderedBid = placement._bufferBid;
-                    placement._bufferBid = null;
-                    placement._isShown = true;
-                    
+                    placement._state = AdUnit.State.Showing;
                     _callbackQueue.Enqueue(new Callback(Callback.Actions.OnShow, placement));
                 }
             }
@@ -412,8 +410,8 @@ namespace Nefta.Ads
                 {
                     placement._renderedWidth = 0;
                     placement._renderedHeight = 0;
-                    placement._renderedBid = null;
-                    placement._isShown = false;
+                    placement._bid = -1;
+                    placement._state = AdUnit.State.Initialized;
                     
                     _callbackQueue.Enqueue(new Callback(Callback.Actions.OnClose, placement));
                 }
@@ -427,34 +425,38 @@ namespace Nefta.Ads
                 while (_callbackQueue.Count > 0)
                 {
                     var callback = _callbackQueue.Dequeue();
+                    Debug.Log("got: " + callback._action);
                     switch (callback._action)
                     {
                         case Callback.Actions.OnReady:
                             OnReady?.Invoke(Placements);
                             break;
                         case Callback.Actions.OnBid:
-                            OnBid?.Invoke(callback._placement);
+                            OnBid?.Invoke(callback.AdUnit);
                             break;
                         case Callback.Actions.OnLoadStart:
-                            OnLoadStart?.Invoke(callback._placement);
+                            OnLoadStart?.Invoke(callback.AdUnit);
                             break;
                         case Callback.Actions.OnLoadFail:
-                            OnLoadFail?.Invoke(callback._placement, callback._data);
+                            OnLoadFail?.Invoke(callback.AdUnit, callback._data);
                             break;
                         case Callback.Actions.OnLoad:
-                            OnLoad?.Invoke(callback._placement);
+                            OnLoad?.Invoke(callback.AdUnit);
+                            break;
+                        case Callback.Actions.OnShowFail:
+                            OnShowFail?.Invoke(callback.AdUnit, callback._data);
                             break;
                         case Callback.Actions.OnShow:
-                            OnShow?.Invoke(callback._placement);
+                            OnShow?.Invoke(callback.AdUnit);
                             break;
                         case Callback.Actions.OnClick:
-                            OnClick?.Invoke(callback._placement);
+                            OnClick?.Invoke(callback.AdUnit);
                             break;
                         case Callback.Actions.OnReward:
-                            OnUserRewarded?.Invoke(callback._placement);
+                            OnUserRewarded?.Invoke(callback.AdUnit);
                             break;
                         case Callback.Actions.OnClose:
-                            OnClose?.Invoke(callback._placement);
+                            OnClose?.Invoke(callback.AdUnit);
                             break;
                     }
                 }
