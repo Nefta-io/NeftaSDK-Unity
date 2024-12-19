@@ -22,9 +22,9 @@ namespace Nefta.Events
         /// </summary>
         public ReceiveMethod _method;
         
-        internal override int _eventType => 2;
+        protected override int _eventType => 2;
         
-        internal override int _subCategory => (int) _method;
+        protected override int _subCategory => (int) _method;
 
         public ReceiveEvent(ResourceCategory category) : base(category)
         {

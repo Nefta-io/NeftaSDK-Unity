@@ -1,5 +1,8 @@
 using System.Collections.Generic;
-using Nefta.Ads;
+#if UNITY_IOS
+using System.Runtime.InteropServices;
+#endif
+using Nefta;
 using UnityEngine;
 
 namespace AdDemo
@@ -7,8 +10,13 @@ namespace AdDemo
     public class AdDemoController : MonoBehaviour
     {
 #if UNITY_IOS
+        private const string AppId = "5661184053215232";
         private const string BannerAdUnitId = "5726295757422592";
+        
+        [DllImport("__Internal")]
+        private static extern void CheckTrackingPermission();
 #else
+        private const string AppId = "5643649824063488";
         private const string BannerAdUnitId = "5679149674921984";
 #endif
         
@@ -22,10 +30,13 @@ namespace AdDemo
         private bool _isBannerShown;
         private Dictionary<string, PlacementController> _placementControllers;
         private DebugServer _debugServer;
+        private float _stateTime;
+        private bool _permissionChecked;
         
         private void Awake()
         {
-            _neftaAds = NeftaAds.Init();
+            NeftaPluginWrapper.EnableLogging(true);
+            _neftaAds = NeftaAds.Init(AppId);
             var debugParams = GetDebugParameters();
             if (debugParams != null)
             {
@@ -58,6 +69,18 @@ namespace AdDemo
             {
                 _neftaAds.OnUpdate();
             }
+
+#if UNITY_IOS
+            if (!_permissionChecked)
+            {
+                _stateTime += Time.deltaTime;
+                if (_stateTime > 1f)
+                {
+                    _permissionChecked = true;
+                    CheckTrackingPermission();
+                }
+            }
+#endif
         }
         
         private void OnReady(Dictionary<string, AdUnit> placements)
@@ -147,8 +170,8 @@ namespace AdDemo
             string root = null;
             string serial = null;
 #if UNITY_EDITOR
-            root = "192.168.0.223";
-            serial = "emulator-sim-4";
+            //root = "192.168.0.223";
+            //serial = "emulator-sim-4";
 #elif UNITY_IOS
             string[] args = System.Environment.GetCommandLineArgs();
             if (args.Length > 1)

@@ -10,7 +10,8 @@ namespace Editor
         [MenuItem("Nefta developer/Export Package")]
         private static void ExportPackage()
         {
-            NeftaConfigurationInspector.EnableLogging(true);
+            NeftaWindow.TryGetPluginImporters();
+            NeftaWindow.TogglePlugins(true);
 
             var packageName = $"NeftaAdSDK_{Application.version}.unitypackage";
             

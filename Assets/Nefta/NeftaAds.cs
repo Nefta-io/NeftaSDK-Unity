@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Nefta.Data;
-using Nefta.Events;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace Nefta.Ads
+namespace Nefta
 {
     public class NeftaAds : NeftaPluginListener
     {
@@ -65,12 +63,11 @@ namespace Nefta.Ads
         
         public NeftaPluginWrapper PluginWrapper { get; private set; }
 
-        public static NeftaAds Init()
+        public static NeftaAds Init(string appId)
         {
             if (Instance != null)
             {
                 return Instance;
-
             }
             
             Instance = new NeftaAds();
@@ -79,16 +76,8 @@ namespace Nefta.Ads
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeChange;
 #endif
-            var configuration = Resources.Load<NeftaConfiguration>(NeftaConfiguration.FileName);
-            Assert.IsNotNull(configuration, "Missing NeftaConfiguration ScriptableObject");
             var gameObject = new GameObject("_NeftaPlugin");
             Instance.PluginWrapper = gameObject.AddComponent<NeftaPluginWrapper>();
-            NeftaPluginWrapper.EnableLogging(configuration._isLoggingEnabled);
-#if UNITY_IOS
-            var appId = configuration._iOSAppId;
-#else
-            var appId = configuration._androidAppId;
-#endif
             Instance.PluginWrapper.Init(appId, Instance);
             return Instance;
         }
@@ -172,88 +161,6 @@ namespace Nefta.Ads
             PluginWrapper.Close(placementId);
         }
         
-        public void Record(GameEvent gameEvent)
-        {
-            var name = gameEvent._name;
-            if (name != null)
-            {
-                name = JavaScriptStringEncode(gameEvent._name);
-            }
-            var customPayload = gameEvent._customString;
-            if (customPayload != null)
-            {
-                customPayload = JavaScriptStringEncode(gameEvent._customString);
-            }
-            PluginWrapper.Record(gameEvent._eventType, gameEvent._category, gameEvent._subCategory, name, gameEvent._value, customPayload);
-        }
-        
-        private static string JavaScriptStringEncode(string value)
-        {
-            int len = value.Length;
-            bool needEncode = false;
-            char c;
-            for (int i = 0; i < len; i++)
-            {
-                c = value [i];
-
-                if (c >= 0 && c <= 31 || c == 34 || c == 39 || c == 60 || c == 62 || c == 92)
-                {
-                    needEncode = true;
-                    break;
-                }
-            }
-
-            if (!needEncode)
-            {
-                return value;
-            }
-            
-            var sb = new StringBuilder ();
-            for (int i = 0; i < len; i++)
-            {
-                c = value [i];
-                if (c >= 0 && c <= 7 || c == 11 || c >= 14 && c <= 31 || c == 39 || c == 60 || c == 62)
-                {
-                    sb.AppendFormat ("\\u{0:x4}", (int)c);
-                }
-                else switch ((int)c)
-                {
-                    case 8:
-                        sb.Append ("\\b");
-                        break;
-
-                    case 9:
-                        sb.Append ("\\t");
-                        break;
-
-                    case 10:
-                        sb.Append ("\\n");
-                        break;
-
-                    case 12:
-                        sb.Append ("\\f");
-                        break;
-
-                    case 13:
-                        sb.Append ("\\r");
-                        break;
-
-                    case 34:
-                        sb.Append ("\\\"");
-                        break;
-
-                    case 92:
-                        sb.Append ("\\\\");
-                        break;
-
-                    default:
-                        sb.Append (c);
-                        break;
-                }
-            }
-            return sb.ToString ();
-        }
-
         public override void IOnReady(string configuration)
         {
             lock (_callbackQueue)
@@ -425,7 +332,6 @@ namespace Nefta.Ads
                 while (_callbackQueue.Count > 0)
                 {
                     var callback = _callbackQueue.Dequeue();
-                    Debug.Log("got: " + callback._action);
                     switch (callback._action)
                     {
                         case Callback.Actions.OnReady:

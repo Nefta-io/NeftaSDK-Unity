@@ -49,11 +49,11 @@ namespace Nefta.Events
         /// </summary>
         public Source _source;
         
-        internal override int _eventType => 1;
+        protected override int _eventType => 1;
 
-        internal override int _category => (int)_type * 3 + (int)_status;
+        protected override int _category => (int)_type * 3 + (int)_status;
         
-        internal override int _subCategory => (int)_source;
+        protected override int _subCategory => (int)_source;
 
         public ProgressionEvent(Type type, Status status)
         {

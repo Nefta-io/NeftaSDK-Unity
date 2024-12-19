@@ -131,6 +131,8 @@ namespace Nefta
 #elif UNITY_ANDROID
         private AndroidJavaObject _pluginWrapper;
 #endif
+
+		public static NeftaPluginWrapper Instance;
         
         public static void EnableLogging(bool enable)
         {
@@ -142,7 +144,8 @@ namespace Nefta
         }
 
         public void Init(string appId, NeftaPluginListener listener)
-        {
+		{
+			Instance = this;
 #if UNITY_EDITOR
             _pluginWrapper = NeftaPlugin.Init(gameObject, appId);
             _pluginWrapper._listener = listener;

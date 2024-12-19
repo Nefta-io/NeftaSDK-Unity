@@ -1,12 +1,27 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
+using UnityEditor.Callbacks;
 using UnityEngine;
 
 namespace Editor
 {
     public class Builder
     {
+        [PostProcessBuild]
+        public static void OnPostProcessBuild(BuildTarget target, string pathToBuildProject)
+        {
+            if (target == BuildTarget.iOS)
+            {
+                string plistPath = Path.Combine(pathToBuildProject, "Info.plist");
+                var plist = new UnityEditor.iOS.Xcode.PlistDocument();
+                plist.ReadFromFile(plistPath);
+                plist.root.SetString("NSUserTrackingUsageDescription", "This allows us to deliver personalized ads and content.");
+                plist.WriteToFile(plistPath);
+            }
+        }
+        
         private static void Build(BuildTarget target, string outPath, bool asProject)
         {
             var scenes = new List<string>();
@@ -19,7 +34,7 @@ namespace Editor
                 scenes = scenes.ToArray(),
                 locationPathName = outPath,
                 target = target,
-                options = BuildOptions.Development | BuildOptions.StrictMode
+                options = BuildOptions.StrictMode
             };
             
             EditorUserBuildSettings.exportAsGoogleAndroidProject = asProject;

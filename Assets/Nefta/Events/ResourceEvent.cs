@@ -22,7 +22,7 @@ namespace Nefta.Events
         
         public long _quantity { get { return _value; } set { _value = value; } }
 
-        internal override int _category => (int) _resourceCategory;
+        protected override int _category => (int) _resourceCategory;
         
         protected ResourceEvent(ResourceCategory category)
         {

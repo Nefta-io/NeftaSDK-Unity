@@ -1,4 +1,4 @@
-using Nefta.Ads;
+using Nefta;
 using Nefta.Events;
 using UnityEngine;
 using UnityEngine.UI;
@@ -46,8 +46,7 @@ namespace AdDemo
                 gameEvent = new SpendEvent(category) { _method = method, _name = $"spend_{category} {method} {value}" };
             }
             gameEvent._value = value;
-            
-            NeftaAds.Instance.Record(gameEvent);
+            gameEvent.Record();
         }
 
         public virtual void OnBid()

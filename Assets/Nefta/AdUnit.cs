@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Nefta.Ads
+namespace Nefta
 {
     public class AdUnit
     {

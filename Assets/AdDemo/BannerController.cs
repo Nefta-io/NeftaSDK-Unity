@@ -1,5 +1,5 @@
 using System;
-using Nefta.Ads;
+using Nefta;
 using UnityEngine;
 using UnityEngine.UI;
 using Button = UnityEngine.UI.Button;

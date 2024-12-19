@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using Nefta.Ads;
+using Nefta;
 using UnityEngine;
 
 namespace AdDemo

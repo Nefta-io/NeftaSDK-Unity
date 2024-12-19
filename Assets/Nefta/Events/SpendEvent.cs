@@ -22,9 +22,9 @@ namespace Nefta.Events
         /// </summary>
         public SpendMethod _method;
 
-        internal override int _eventType => 3;
+        protected override int _eventType => 3;
         
-        internal override int _subCategory => (int) _method;
+        protected override int _subCategory => (int) _method;
         
         public SpendEvent(ResourceCategory category) : base(category)
         {
