@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Nefta.Data;
 using UnityEngine;
-using UnityEngine.Assertions;
 
 namespace Nefta
 {

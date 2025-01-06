@@ -9031,6 +9031,28 @@
           },
           {
             "kind": "Function",
+            "name": "ShowThreaded",
+            "printedName": "ShowThreaded()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "c:@M@NeftaSDK@objc(cs)NAd(im)ShowThreaded",
+            "mangledName": "$s8NeftaSDK3NAdC12ShowThreadedyyF",
+            "moduleName": "NeftaSDK",
+            "isOpen": true,
+            "declAttributes": [
+              "AccessControl",
+              "ObjC"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
             "name": "Show",
             "printedName": "Show()",
             "children": [
@@ -9233,6 +9255,28 @@
             "mangledName": "$s8NeftaSDK3NAdC7OnPause6pausedySb_tF",
             "moduleName": "NeftaSDK",
             "isOpen": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "CloseThreaded",
+            "printedName": "CloseThreaded()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "c:@M@NeftaSDK@objc(cs)NAd(im)CloseThreaded",
+            "mangledName": "$s8NeftaSDK3NAdC13CloseThreadedyyF",
+            "moduleName": "NeftaSDK",
+            "isOpen": true,
+            "declAttributes": [
+              "AccessControl",
+              "ObjC"
+            ],
             "funcSelfKind": "NonMutating"
           },
           {

@@ -357,7 +357,9 @@ SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly) NSInteger Expired;)
 - (void)Bid;
 - (void)LoadWithBidResponseWithBidResponse:(NSData * _Nonnull)bidResponse;
 - (void)Load;
+- (void)ShowThreaded;
 - (void)Show;
+- (void)CloseThreaded;
 - (void)Close;
 - (void)SetFloorPriceWithFloorPrice:(float)floorPrice;
 - (void)SetCustomParameterWithProvider:(NSString * _Nonnull)provider value:(NSString * _Nonnull)value;
@@ -1001,7 +1003,9 @@ SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly) NSInteger Expired;)
 - (void)Bid;
 - (void)LoadWithBidResponseWithBidResponse:(NSData * _Nonnull)bidResponse;
 - (void)Load;
+- (void)ShowThreaded;
 - (void)Show;
+- (void)CloseThreaded;
 - (void)Close;
 - (void)SetFloorPriceWithFloorPrice:(float)floorPrice;
 - (void)SetCustomParameterWithProvider:(NSString * _Nonnull)provider value:(NSString * _Nonnull)value;

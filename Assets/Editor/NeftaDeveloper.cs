@@ -15,17 +15,11 @@ namespace Editor
 
             var packageName = $"NeftaAdSDK_{Application.version}.unitypackage";
             
-            var guid = AssetDatabase.FindAssets("NeftaPlugin-debug")[0];
-            var path = AssetDatabase.GUIDToAssetPath(guid);
-            var importer = (PluginImporter) AssetImporter.GetAtPath(path);
-            importer.SetCompatibleWithPlatform(BuildTarget.Android, true);
-            importer.SaveAndReimport();
+            NeftaWindow._debugPluginImporter.SetCompatibleWithPlatform(BuildTarget.Android, true);
+            NeftaWindow._debugPluginImporter.SaveAndReimport();
             
-            guid = AssetDatabase.FindAssets("NeftaPlugin-release")[0];
-            path = AssetDatabase.GUIDToAssetPath(guid);
-            importer = (PluginImporter) AssetImporter.GetAtPath(path);
-            importer.SetCompatibleWithPlatform(BuildTarget.Android, false);
-            importer.SaveAndReimport();
+            NeftaWindow._releasePluginImporter.SetCompatibleWithPlatform(BuildTarget.Android, false);
+            NeftaWindow._releasePluginImporter.SaveAndReimport();
             
             try
             {

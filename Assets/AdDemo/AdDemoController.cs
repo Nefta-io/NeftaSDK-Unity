@@ -1,7 +1,4 @@
 using System.Collections.Generic;
-#if UNITY_IOS
-using System.Runtime.InteropServices;
-#endif
 using Nefta;
 using UnityEngine;
 
@@ -13,7 +10,7 @@ namespace AdDemo
         private const string AppId = "5661184053215232";
         private const string BannerAdUnitId = "5726295757422592";
         
-        [DllImport("__Internal")]
+        [System.Runtime.InteropServices.DllImport("__Internal")]
         private static extern void CheckTrackingPermission();
 #else
         private const string AppId = "5643649824063488";

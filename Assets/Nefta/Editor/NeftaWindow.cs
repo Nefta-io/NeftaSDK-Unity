@@ -17,8 +17,8 @@ namespace Nefta.Editor
         private string _androidVersion;
         private string _iosVersion;
         
-        private static PluginImporter _debugPluginImporter;
-        private static PluginImporter _releasePluginImporter;
+        public static PluginImporter _debugPluginImporter;
+        public static PluginImporter _releasePluginImporter;
         
         [MenuItem("Window/Nefta", false, 200)]
         public static void ShowWindow()
