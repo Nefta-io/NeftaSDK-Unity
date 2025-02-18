@@ -13,6 +13,8 @@ namespace Nefta
         void IOnClick(string pId);
         void IOnReward(string pId);
         void IOnClose(string pId);
+
+        void IOnBehaviourInsight(string behaviourInsight);
     }
 }
 #endif

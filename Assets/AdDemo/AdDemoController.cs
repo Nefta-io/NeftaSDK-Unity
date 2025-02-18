@@ -37,11 +37,12 @@ namespace AdDemo
             var debugParams = GetDebugParameters();
             if (debugParams != null)
             {
-                _neftaAds.PluginWrapper.SetOverride($"http://{debugParams[0]}:8080");
+                _neftaAds.SetOverride(debugParams[0]);
                 
                 _debugServer = new DebugServer();
-                _debugServer.Init(debugParams[0], debugParams[1]);
+                _debugServer.Init(debugParams[0]);
             }
+
             _neftaAds.OnReady = OnReady;
             _neftaAds.OnBid = OnBid;
             _neftaAds.OnLoadStart = OnLoadStart;
@@ -51,7 +52,10 @@ namespace AdDemo
             _neftaAds.OnShow = OnShow;
             _neftaAds.OnClose = OnClose;
             _neftaAds.OnUserRewarded = OnUserRewarded;
-            _neftaAds.Enable(true);
+
+            _neftaAds.OnBehaviourInsight = OnBehaviourInsight;
+            
+            _neftaAds.GetBehaviourInsight(new string[] { "p_churn_14d", "non e", "p_churn_30d"});
             
             AdjustOffsets(0);
         }
@@ -67,7 +71,7 @@ namespace AdDemo
                 _neftaAds.OnUpdate();
             }
 
-#if UNITY_IOS
+#if !UNITY_EDITOR && UNITY_IOS
             if (!_permissionChecked)
             {
                 _stateTime += Time.deltaTime;
@@ -103,8 +107,17 @@ namespace AdDemo
                     _neftaAds.SetFloorPrice(BannerAdUnitId, 0.42f);
 
                     _neftaAds.CreateBanner(BannerAdUnitId, NeftaAds.BannerPosition.Top, true);
-                    NeftaAds.Instance.Show(BannerAdUnitId);
+                    _neftaAds.Show(BannerAdUnitId);
                 }
+            }
+        }
+
+        private void OnBehaviourInsight(Dictionary<string, Insight> behaviourInsight)
+        {
+            foreach (var insight in behaviourInsight)
+            {
+                var insightValue = insight.Value;
+                Debug.Log($"DI BehaviourInsight {insight.Key} status:{insightValue._status} i:{insightValue._int} f:{insightValue._float} s:{insightValue._string}");
             }
         }
 

@@ -9,6 +9,9 @@ namespace Nefta.Events
         protected abstract int _subCategory { get; }
         
         public string _name;
+        /// <summary>
+        /// Value field, must be non-negative.
+        /// </summary>
         public long _value;
         public string _customString;
         

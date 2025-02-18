@@ -14,13 +14,11 @@ namespace AdDemo
         private Thread _backgroundThread;
         private NetworkStream _stream;
         private Queue<string> _messageQueue;
-
-        private string _serial;
+        
         private string _ip;
         
-        public void Init(string serial, string ip)
+        public void Init(string ip)
         {
-            _serial = serial;
             _ip = ip;
 
             _messageQueue = new Queue<string>();
@@ -77,7 +75,7 @@ namespace AdDemo
                     }
                     if (control == "get_nuid")
                     {
-                        var nuid = NeftaAds.Instance.PluginWrapper.GetNuid(true);
+                        var nuid = NeftaAds.Instance.GetNuid(true);
                         Send("return nuid", nuid);
                     }
                     else if (control == "ad_units")
@@ -152,7 +150,7 @@ namespace AdDemo
 
         public void Send(string type, string message)
         {
-            Send($"{_serial} {type} {message}");
+            Send($"Uni {type} {message}");
         }
 
         private void Send(string data)

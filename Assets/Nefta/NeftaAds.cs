@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
 using UnityEngine;
 
 namespace Nefta
@@ -42,11 +44,14 @@ namespace Nefta
         }
         
         private Queue<Callback> _callbackQueue;
+        private IEnumerable<String> _scheduledBehaviourInsight;
+        private Dictionary<string, Insight> _behaviourInsight;
         public static NeftaAds Instance { get; private set; }
 
         public Dictionary<string, AdUnit> Placements { get; private set; }
         
         public Action<Dictionary<string, AdUnit>> OnReady;
+        public Action<Dictionary<string, Insight>> OnBehaviourInsight;
         public Action<AdUnit> OnBid;
         public Action<AdUnit> OnLoadStart;
         public Action<AdUnit, string> OnLoadFail;
@@ -80,9 +85,28 @@ namespace Nefta
             return Instance;
         }
 
-        public void Enable(bool enable)
+        public void GetBehaviourInsight(IEnumerable<string> insights)
         {
-            PluginWrapper.EnableAds(enable);
+            if (_scheduledBehaviourInsight != null)
+            {
+                return;
+            }
+            _scheduledBehaviourInsight = insights;
+            StringBuilder sb = new StringBuilder();
+            bool isFirst = true;
+            foreach (var insight in insights)
+            {
+                if (isFirst)
+                {
+                    isFirst = false;
+                }
+                else
+                {
+                    sb.Append(",");
+                }
+                sb.Append(insight);
+            }
+            PluginWrapper.GetBehaviourInsight(sb.ToString());
         }
 
         public void CreateBanner(string placementId, BannerPosition position, bool autoRefresh)
@@ -120,7 +144,7 @@ namespace Nefta
             PluginWrapper.LoadWithBidResponse(placementId, bidResponse);
         }
         
-        public bool IsPlacementReady(string placementId)
+        public bool CanShow(string placementId)
         {
             if (Placements.TryGetValue(placementId, out var placement))
             {
@@ -154,9 +178,24 @@ namespace Nefta
             }
         }
 
+        public void Mute(string placementId, bool mute)
+        {
+            PluginWrapper.Mute(placementId, mute);
+        }
+
         public void Close(string placementId)
         {
             PluginWrapper.Close(placementId);
+        }
+
+        public string GetNuid(bool withGui)
+        {
+            return PluginWrapper.GetNuid(withGui);
+        }
+        
+        public void SetOverride(string overrideUrl)
+        {
+            PluginWrapper.SetOverride(overrideUrl);    
         }
         
         public override void IOnReady(string configuration)
@@ -322,6 +361,107 @@ namespace Nefta
                 }
             }
         }
+
+        public override void IOnBehaviourInsight(string bi)
+        {
+            lock (_callbackQueue)
+            {
+                _behaviourInsight = new Dictionary<string, Insight>();
+                try
+                {
+                    var start = bi.IndexOf("s\":", StringComparison.InvariantCulture) + 5;
+
+                    while (start != -1 && start < bi.Length)
+                    {
+                        var end = bi.IndexOf("\":{", start, StringComparison.InvariantCulture);
+                        var key = bi.Substring(start, end - start);
+                        string status = null;
+                        long intVal = 0;
+                        double floatVal = 0;
+                        string stringVal = null;
+
+                        start = end + 4;
+                        for (var f = 0; f < 4; f++)
+                        {
+                            if (bi[start] == 's' && bi[start + 2] == 'a')
+                            {
+                                start += 9;
+                                end = bi.IndexOf("\"", start, StringComparison.InvariantCulture);
+                                status = bi.Substring(start, end - start);
+                                end++;
+                            }
+                            else if (bi[start] == 'f')
+                            {
+                                start += 11;
+                                end = start + 1;
+                                for (; end < bi.Length; end++)
+                                {
+                                    if (bi[end] == ',' || bi[end] == '}')
+                                    {
+                                        break;
+                                    }
+                                }
+
+                                var doubleString = bi.Substring(start, end - start);
+                                floatVal = Double.Parse(doubleString, NumberStyles.Float);
+                            }
+                            else if (bi[start] == 'i')
+                            {
+                                start += 9;
+                                end = start + 1;
+                                for (; end < bi.Length; end++)
+                                {
+                                    if (bi[end] == ',' || bi[end] == '}')
+                                    {
+                                        break;
+                                    }
+                                }
+
+                                var intString = bi.Substring(start, end - start);
+                                intVal = long.Parse(intString, NumberStyles.Number);
+                            }
+                            else if (bi[start] == 's')
+                            {
+                                start += 13;
+                                end = bi.IndexOf("\"", start, StringComparison.InvariantCulture);
+                                stringVal = bi.Substring(start, end - start);
+                                end++;
+                            }
+
+                            if (bi[end] == '}')
+                            {
+                                break;
+                            }
+
+                            start = end + 2;
+                        }
+
+                        _behaviourInsight[key] = new Insight(status, intVal, floatVal, stringVal);
+
+                        if (bi[end + 1] == '}')
+                        {
+                            break;
+                        }
+
+                        start = end + 3;
+                    }
+                }
+                catch (Exception)
+                {
+                    // ignored
+                }
+
+                foreach (var insightName in _scheduledBehaviourInsight)
+                {
+                    if (!_behaviourInsight.ContainsKey(insightName))
+                    {
+                        _behaviourInsight.Add(insightName, new Insight("Error retrieving key", 0, 0, null));
+                    }
+                }
+
+                _scheduledBehaviourInsight = null;
+            }
+        }
         
         public void OnUpdate()
         {
@@ -363,6 +503,12 @@ namespace Nefta
                             OnClose?.Invoke(callback.AdUnit);
                             break;
                     }
+                }
+                
+                if (_behaviourInsight != null)
+                {
+                    OnBehaviourInsight(_behaviourInsight);
+                    _behaviourInsight = null;
                 }
             }
         }

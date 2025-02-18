@@ -20,13 +20,13 @@ extern "C" {
     typedef void (*OnFail)(const char *pId, int code, const char *error);
     typedef void (*OnLoad)(const char *pId, int width, int height);
     typedef void (*OnChange)(const char *pId);
+    typedef void (*OnBehaviourInsight)(const char *behaviourInsight);
     
     void NeftaPlugin_EnableLogging(bool enable);
-    void *UnityWrapper_Init(const char *appId);
-    void UnityWrapper_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoadStart, OnFail onLoadFail, OnLoad onLoad, OnFail onShowFail, OnChange onShow, OnChange onClick, OnChange onClose, OnChange onReward);
+    void UnityWrapper_Init(const char *appId);
+    void UnityWrapper_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoadStart, OnFail onLoadFail, OnLoad onLoad, OnFail onShowFail, OnChange onShow, OnChange onClick, OnChange onClose, OnChange onReward, OnBehaviourInsight OnBehaviourInsight);
     void UnityWrapper_Record(int type, int category, int subCategory, const char *name, long value, const char *customPayload);
     void UnityWrapper_SetPublisherUserId(const char *userId);
-    void UnityWrapper_EnableAds(Boolean enable);
     void UnityWrapper_CreateBannerWithId(const char *pId, int position, bool autoRefresh);
     void UnityWrapper_SetFloorPrice(const char *pId, float floorPrice);
     const char * UnityWrapper_GetPartialBidRequest(const char *pId);
@@ -40,6 +40,7 @@ extern "C" {
     void UnityWrapper_Mute(const char *pId, bool mute);
     void UnityWrapper_SetOverride(const char *root);
     const char * UnityWrapper_GetNuid(bool present);
+    void UnityWrapper_GetBehaviourInsight(const char *insights);
 #ifdef __cplusplus
 }
 #endif
@@ -50,13 +51,12 @@ void NeftaPlugin_EnableLogging(bool enable) {
     [NeftaPlugin EnableLogging: enable];
 }
 
-void *UnityWrapper_Init(const char *appId) {
+void UnityWrapper_Init(const char *appId) {
     _wrapper = [[UnityWrapper alloc] initWithAppId: [NSString stringWithUTF8String: appId]];
     [_wrapper._plugin PrepareRendererWithViewController: UnityGetGLViewController()];
-    return (__bridge_retained void *)_wrapper;
 }
 
-void UnityWrapper_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoadStart, OnFail onLoadFail, OnLoad onLoad, OnFail onShowFail, OnChange onShow, OnChange onClick, OnChange onClose, OnChange onReward) {
+void UnityWrapper_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoadStart, OnFail onLoadFail, OnLoad onLoad, OnFail onShowFail, OnChange onShow, OnChange onClick, OnChange onClose, OnChange onReward, OnBehaviourInsight onBehaviourInsight) {
     _wrapper.IOnReady = ^void(NSString * _Nonnull configuration) {
         const char *cConfiguration = [configuration UTF8String];
         onReady(cConfiguration);
@@ -99,16 +99,16 @@ void UnityWrapper_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoa
         const char *cPId = [pId UTF8String];
         onReward(cPId);
     };
+    _wrapper._plugin.OnBehaviourInsightAsString = ^void(NSString * _Nonnull behaviourInsight) {
+        const char *cBI = [behaviourInsight UTF8String];
+        onBehaviourInsight(cBI);
+    };
 }
 
 void UnityWrapper_Record(int type, int category, int subCategory, const char *name, long value, const char *customPayload) {
     NSString *n = name ? [NSString stringWithUTF8String: name] : nil;
     NSString *cp = customPayload ? [NSString stringWithUTF8String: customPayload] : nil;
     [_wrapper._plugin RecordWithType: type category: category subCategory: subCategory name: n value: value customPayload: cp];
-}
-
-void UnityWrapper_EnableAds(Boolean enable) {
-    [_wrapper._plugin EnableAds: enable];
 }
 
 void UnityWrapper_SetPublisherUserId(const char *userId) {
@@ -174,4 +174,8 @@ const char * UnityWrapper_GetNuid(bool present) {
     char *returnString = (char *)malloc(strlen(string) + 1);
     strcpy(returnString, string);
     return returnString;
+}
+
+void UnityWrapper_GetBehaviourInsight(const char *insights) {
+    [_wrapper._plugin GetBehaviourInsightWithString: [NSString stringWithUTF8String: insights]];
 }

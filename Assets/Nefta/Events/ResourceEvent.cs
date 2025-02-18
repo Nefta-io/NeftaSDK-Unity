@@ -20,6 +20,9 @@ namespace Nefta.Events
         /// </summary>
         public ResourceCategory _resourceCategory;
         
+        /// <summary>
+        /// Quantity field, must be non-negative.
+        /// </summary>
         public long _quantity { get { return _value; } set { _value = value; } }
 
         protected override int _category => (int) _resourceCategory;

@@ -19,6 +19,7 @@ namespace Nefta
         private delegate void OnFailDelegate(string pId, int code, string error);
         private delegate void OnLoadDelegate(string pId, int width, int height);
         private delegate void OnChangeDelegate(string pId);
+        private delegate void OnBehaviourInsightDelegate(string behaviourInsight);
  
         [MonoPInvokeCallback(typeof(OnReadyDelegate))] 
         private static void OnReady(string configuration) {
@@ -70,23 +71,25 @@ namespace Nefta
             _listener?.IOnReward(pId);
         }
 
+        [MonoPInvokeCallback(typeof(OnBehaviourInsightDelegate))] 
+        private static void OnBehaviourInsight(string behaviourInsight) {
+            _listener?.IOnBehaviourInsight(behaviourInsight);
+        }
+
         [DllImport ("__Internal")]
         private static extern void NeftaPlugin_EnableLogging(bool enable);
 
         [DllImport ("__Internal")]
-        private static extern IntPtr UnityWrapper_Init(string appId);
+        private static extern void UnityWrapper_Init(string appId);
 
         [DllImport ("__Internal")]
-        private static extern void UnityWrapper_RegisterCallbacks(OnReadyDelegate onReady, OnBidDelegate onBid, OnChangeDelegate onLoadStart, OnFailDelegate onLoadFail, OnLoadDelegate onLoad, OnFailDelegate onShowFail, OnChangeDelegate onShow, OnChangeDelegate onClick, OnChangeDelegate onReward, OnChangeDelegate onClose);
+        private static extern void UnityWrapper_RegisterCallbacks(OnReadyDelegate onReady, OnBidDelegate onBid, OnChangeDelegate onLoadStart, OnFailDelegate onLoadFail, OnLoadDelegate onLoad, OnFailDelegate onShowFail, OnChangeDelegate onShow, OnChangeDelegate onClick, OnChangeDelegate onClose, OnChangeDelegate onReward, OnBehaviourInsightDelegate onBehaviourInsight);
 
         [DllImport ("__Internal")]
         private static extern void UnityWrapper_Record(int type, int category, int subCategory, string nameValue, long value, string customPayload);
             
         [DllImport ("__Internal")]
         private static extern void UnityWrapper_SetPublisherUserId(string publisherUserId);
-
-        [DllImport ("__Internal")]
-        private static extern void UnityWrapper_EnableAds(bool enable);
 
         [DllImport ("__Internal")]
         private static extern void UnityWrapper_CreateBannerWithId(string pId, int position, bool autoRefresh);
@@ -127,12 +130,15 @@ namespace Nefta
         [DllImport ("__Internal")]
         private static extern string UnityWrapper_GetNuid(bool present);
 
+        [DllImport ("__Internal")]
+        private static extern void UnityWrapper_GetBehaviourInsight(string insights);
+
         private static INeftaListener _listener;
 #elif UNITY_ANDROID
         private AndroidJavaObject _pluginWrapper;
 #endif
 
-		public static NeftaPluginWrapper Instance;
+		internal static NeftaPluginWrapper Instance;
         
         public static void EnableLogging(bool enable)
         {
@@ -140,10 +146,15 @@ namespace Nefta
             NeftaPlugin.EnableLogging(enable);
 #elif UNITY_IOS
             NeftaPlugin_EnableLogging(enable);
+#elif UNITY_ANDROID
+            using (AndroidJavaClass neftaPlugin = new AndroidJavaClass("com.nefta.sdk.NeftaPlugin"))
+            {
+                neftaPlugin.CallStatic("EnableLogging", enable);
+            }
 #endif
         }
 
-        public void Init(string appId, NeftaPluginListener listener)
+        internal void Init(string appId, NeftaPluginListener listener)
 		{
 			Instance = this;
 #if UNITY_EDITOR
@@ -152,7 +163,7 @@ namespace Nefta
 #elif UNITY_IOS
             UnityWrapper_Init(appId);
             _listener = listener;
-            UnityWrapper_RegisterCallbacks(OnReady, OnBid, OnLoadStart, OnLoadFail, OnLoad, OnShowFail, OnShow, OnClick, OnClose, OnReward);
+            UnityWrapper_RegisterCallbacks(OnReady, OnBid, OnLoadStart, OnLoadFail, OnLoad, OnShowFail, OnShow, OnClick, OnClose, OnReward, OnBehaviourInsight);
 #elif UNITY_ANDROID
             AndroidJavaClass unityClass = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
             AndroidJavaObject _unityActivity = unityClass.GetStatic<AndroidJavaObject>("currentActivity");
@@ -175,8 +186,18 @@ namespace Nefta
             }
         }
 #endif
+        internal void GetBehaviourInsight(string insightList)
+        {
+#if UNITY_EDITOR
+            _pluginWrapper.GetBehaviourInsight(insightList);
+#elif UNITY_IOS
+            UnityWrapper_GetBehaviourInsight(insightList);
+#elif UNITY_ANDROID
+            _pluginWrapper.Call("GetBehaviourInsight", insightList);
+#endif
+        }
 
-        public string GetNuid(bool present)
+        internal string GetNuid(bool present)
         {
             string nuid = null;
 #if UNITY_EDITOR
@@ -189,7 +210,7 @@ namespace Nefta
             return nuid;
         }
         
-        public void SetPublisherUserId(string publisherUserId)
+        internal void SetPublisherUserId(string publisherUserId)
         {
 #if UNITY_EDITOR
             _pluginWrapper.SetPublisherUserId(publisherUserId);
@@ -200,7 +221,7 @@ namespace Nefta
 #endif
         }
 
-        public void Record(int type, int category, int subCategory, string nameValue, long value, string customPayload)
+        internal void Record(int type, int category, int subCategory, string nameValue, long value, string customPayload)
         {
 #if UNITY_EDITOR
             _pluginWrapper.Record(type, category, subCategory, nameValue, value, customPayload);
@@ -210,19 +231,8 @@ namespace Nefta
             _pluginWrapper.Call("Record", type, category, subCategory, nameValue, value, customPayload);
 #endif
         }
-        
-        public void EnableAds(bool enable)
-        {
-#if UNITY_EDITOR
-            _pluginWrapper.EnableAds(enable);
-#elif UNITY_IOS
-            UnityWrapper_EnableAds(enable);
-#elif UNITY_ANDROID
-            _pluginWrapper.Call("EnableAds", enable);
-#endif
-        }
 
-        public void SetFloorPrice(string placementId, float floorPrice)
+        internal void SetFloorPrice(string placementId, float floorPrice)
         {
 #if UNITY_EDITOR
             _pluginWrapper.SetFloorPrice(placementId, floorPrice);
@@ -233,7 +243,7 @@ namespace Nefta
 #endif
         }
         
-        public string GetPartialBidRequest(string placementId)
+        internal string GetPartialBidRequest(string placementId)
         {
             string partialBid = null;
 #if UNITY_EDITOR
@@ -246,7 +256,7 @@ namespace Nefta
             return partialBid;
         }
         
-        public void Bid(string id)
+        internal void Bid(string id)
         {
 #if UNITY_EDITOR
             NeftaPlugin.Instance.Bid(id);
@@ -257,7 +267,7 @@ namespace Nefta
 #endif
         }
 
-        public void CreateBanner(string id, int position, bool autoRefresh)
+        internal void CreateBanner(string id, int position, bool autoRefresh)
         {
 #if UNITY_EDITOR
             NeftaPlugin.Instance.CreateBanner(id, position, autoRefresh);
@@ -268,7 +278,7 @@ namespace Nefta
 #endif
         }
         
-        public void Load(string id)
+        internal void Load(string id)
         {
 #if UNITY_EDITOR
             NeftaPlugin.Instance.Load(id);
@@ -279,7 +289,7 @@ namespace Nefta
 #endif
         }
 
-        public void LoadWithBidResponse(string id, string bidResponse)
+        internal void LoadWithBidResponse(string id, string bidResponse)
         {
 #if UNITY_EDITOR
             NeftaPlugin.Instance.LoadWithBidResponse(id, bidResponse);
@@ -290,7 +300,7 @@ namespace Nefta
 #endif
         }
 
-        public int CanShow(string id)
+        internal int CanShow(string id)
         {
 #if UNITY_EDITOR
             return _pluginWrapper.CanShow(id);
@@ -301,7 +311,7 @@ namespace Nefta
 #endif
         }
         
-        public void Show(string id)
+        internal void Show(string id)
         {
 #if UNITY_EDITOR
             _pluginWrapper.Show(id);
@@ -312,7 +322,7 @@ namespace Nefta
 #endif
         }
         
-        public void Hide(string id)
+        internal void Hide(string id)
         {
 #if UNITY_EDITOR
             _pluginWrapper.Hide(id);
@@ -323,7 +333,7 @@ namespace Nefta
 #endif
         }
         
-        public void Close(string id)
+        internal void Close(string id)
         {
 #if UNITY_EDITOR
             _pluginWrapper.Close(id);
@@ -334,7 +344,7 @@ namespace Nefta
 #endif
         }
         
-        public void Mute(string id, bool mute)
+        internal void Mute(string id, bool mute)
         {
 #if UNITY_EDITOR
             _pluginWrapper.Mute(id, mute);
@@ -345,9 +355,9 @@ namespace Nefta
 #endif
         }
         
-        public void SetOverride(string root) {
+        internal void SetOverride(string root) {
 #if UNITY_EDITOR
-         
+            _pluginWrapper.Override(root);
 #elif UNITY_IOS
             UnityWrapper_SetOverride(root);
 #elif UNITY_ANDROID

@@ -50,5 +50,10 @@ namespace Nefta
         public virtual void IOnClose(string pId)
         {
         }
+
+        public virtual void IOnBehaviourInsight(string behaviourInsight)
+        {
+            
+        }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using Nefta;
+using Nefta.Events;
 using UnityEngine;
 using UnityEngine.UI;
 using Button = UnityEngine.UI.Button;
@@ -30,6 +31,9 @@ namespace AdDemo
 
         private void OnCreateClick()
         {
+            new PurchaseEvent("unity_iap0", 24.99M, "USD").Record();
+            new PurchaseEvent("unity_iap1", 2.99M, "EUR") { _customString = "cd ?" }.Record();
+            
             NeftaAds.Instance.CreateBanner(AdUnit._id, NeftaAds.BannerPosition.Top, true);
             NeftaAds.Instance.Show(AdUnit._id);
         }
