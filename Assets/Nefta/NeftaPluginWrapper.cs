@@ -92,6 +92,9 @@ namespace Nefta
         private static extern void UnityWrapper_SetPublisherUserId(string publisherUserId);
 
         [DllImport ("__Internal")]
+        private static extern void UnityWrapper_SetContentRating(string rating);
+
+        [DllImport ("__Internal")]
         private static extern void UnityWrapper_CreateBannerWithId(string pId, int position, bool autoRefresh);
 
         [DllImport ("__Internal")]
@@ -218,6 +221,17 @@ namespace Nefta
             UnityWrapper_SetPublisherUserId(publisherUserId);
 #elif UNITY_ANDROID
             _pluginWrapper.Call("SetPublisherUserId", publisherUserId);
+#endif
+        }
+
+        internal void SetContentRating(string rating)
+        {
+#if UNITY_EDITOR
+            _pluginWrapper.SetContentRating(rating);
+#elif UNITY_IOS
+            UnityWrapper_SetContentRating(rating);
+#elif UNITY_ANDROID
+            _pluginWrapper.Call("SetContentRating", rating);
 #endif
         }
 
@@ -361,7 +375,10 @@ namespace Nefta
 #elif UNITY_IOS
             UnityWrapper_SetOverride(root);
 #elif UNITY_ANDROID
-            _pluginWrapper.Call("SetOverride", root);
+            using (AndroidJavaClass neftaPlugin = new AndroidJavaClass("com.nefta.sdk.NeftaPlugin"))
+            {
+                neftaPlugin.CallStatic("SetOverride", root);
+            }
 #endif
         }
     }

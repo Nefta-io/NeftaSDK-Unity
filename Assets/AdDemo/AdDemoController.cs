@@ -56,6 +56,7 @@ namespace AdDemo
             _neftaAds.OnBehaviourInsight = OnBehaviourInsight;
             
             _neftaAds.GetBehaviourInsight(new string[] { "p_churn_14d", "non e", "p_churn_30d"});
+            _neftaAds.SetContentRating(NeftaAds.ContentRating.Teen);
             
             AdjustOffsets(0);
         }
@@ -180,7 +181,7 @@ namespace AdDemo
             string root = null;
             string serial = null;
 #if UNITY_EDITOR
-            //root = "192.168.0.223";
+            //root = "http://192.168.50.65:8080";
             //serial = "emulator-sim-4";
 #elif UNITY_IOS
             string[] args = System.Environment.GetCommandLineArgs();

@@ -42,6 +42,15 @@ namespace Nefta
             Top = 1,
             Bottom = 2
         }
+
+        public enum ContentRating
+        {
+            Unspecified = 0,
+            General = 1,
+            ParentalGuidance = 2,
+            Teen = 3,
+            MatureAudience = 4
+        }
         
         private Queue<Callback> _callbackQueue;
         private IEnumerable<String> _scheduledBehaviourInsight;
@@ -117,6 +126,27 @@ namespace Nefta
         public void SetCustomPublisherUserId(string userId)
         {
             PluginWrapper.SetPublisherUserId(userId);
+        }
+
+        public void SetContentRating(ContentRating rating)
+        {
+            var r = "";
+            switch (rating)
+            {
+                case ContentRating.General:
+                    r = "G";
+                    break;
+                case ContentRating.ParentalGuidance:
+                    r = "PG";
+                    break;
+                case ContentRating.Teen:
+                    r = "T";
+                    break;
+                case ContentRating.MatureAudience:
+                    r = "MA";
+                    break;
+            }
+            PluginWrapper.SetContentRating(r);
         }
 
         public void SetFloorPrice(string placementId, float floorPrice)

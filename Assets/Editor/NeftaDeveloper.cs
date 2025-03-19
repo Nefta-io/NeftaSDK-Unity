@@ -11,16 +11,9 @@ namespace Editor
         private static void ExportPackage()
         {
             NeftaWindow.TryGetPluginImporters();
-            NeftaWindow.TogglePlugins(true);
+            NeftaWindow.TogglePlugins(false);
 
             var packageName = $"NeftaAdSDK_{Application.version}.unitypackage";
-            
-            NeftaWindow._debugPluginImporter.SetCompatibleWithPlatform(BuildTarget.Android, true);
-            NeftaWindow._debugPluginImporter.SaveAndReimport();
-            
-            NeftaWindow._releasePluginImporter.SetCompatibleWithPlatform(BuildTarget.Android, false);
-            NeftaWindow._releasePluginImporter.SaveAndReimport();
-            
             try
             {
                 AssetDatabase.ExportPackage(new [] { "Assets/Nefta" }, packageName, ExportPackageOptions.Recurse);

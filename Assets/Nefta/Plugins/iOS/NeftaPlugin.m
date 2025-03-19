@@ -27,6 +27,7 @@ extern "C" {
     void UnityWrapper_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoadStart, OnFail onLoadFail, OnLoad onLoad, OnFail onShowFail, OnChange onShow, OnChange onClick, OnChange onClose, OnChange onReward, OnBehaviourInsight OnBehaviourInsight);
     void UnityWrapper_Record(int type, int category, int subCategory, const char *name, long value, const char *customPayload);
     void UnityWrapper_SetPublisherUserId(const char *userId);
+    void UnityWrapper_SetContentRating(const char *rating);
     void UnityWrapper_CreateBannerWithId(const char *pId, int position, bool autoRefresh);
     void UnityWrapper_SetFloorPrice(const char *pId, float floorPrice);
     const char * UnityWrapper_GetPartialBidRequest(const char *pId);
@@ -52,8 +53,8 @@ void NeftaPlugin_EnableLogging(bool enable) {
 }
 
 void UnityWrapper_Init(const char *appId) {
-    _wrapper = [[UnityWrapper alloc] initWithAppId: [NSString stringWithUTF8String: appId]];
-    [_wrapper._plugin PrepareRendererWithViewController: UnityGetGLViewController()];
+    UIViewController *viewController = UnityGetGLViewController();
+    _wrapper = [[UnityWrapper alloc] initWithViewController: viewController appId: [NSString stringWithUTF8String: appId]];
 }
 
 void UnityWrapper_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoadStart, OnFail onLoadFail, OnLoad onLoad, OnFail onShowFail, OnChange onShow, OnChange onClick, OnChange onClose, OnChange onReward, OnBehaviourInsight onBehaviourInsight) {
@@ -115,6 +116,10 @@ void UnityWrapper_SetPublisherUserId(const char *userId) {
     [_wrapper._plugin SetPublisherUserIdWithId: [NSString stringWithUTF8String: userId]];
 }
 
+void UnityWrapper_SetContentRating(const char *rating) {
+    [_wrapper._plugin SetContentRatingWithRating: [NSString stringWithUTF8String: rating]];
+}
+
 void UnityWrapper_CreateBannerWithId(const char *pId, int position, bool autoRefresh) {
     [_wrapper CreateBannerWithId: [NSString stringWithUTF8String: pId] position: position autoRefresh: autoRefresh];
 }
@@ -166,7 +171,7 @@ void UnityWrapper_MuteWithId(const char *pId, bool mute) {
 }
 
 void UnityWrapper_SetOverride(const char *root) {
-    [_wrapper._plugin SetOverrideWithUrl: [NSString stringWithUTF8String: root]];
+    [NeftaPlugin SetOverrideWithUrl: [NSString stringWithUTF8String: root]];
 }
 
 const char * UnityWrapper_GetNuid(bool present) {
