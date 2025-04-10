@@ -70,7 +70,8 @@ namespace Nefta.Editor
                 plist.WriteToFile(plistPath);
             }
         }
-#endif 
+#endif
+        
         public void OnEnable()
         {
             TryGetPluginImporters();

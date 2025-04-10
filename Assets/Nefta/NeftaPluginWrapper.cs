@@ -179,6 +179,10 @@ namespace Nefta
 #if !UNITY_EDITOR && UNITY_ANDROID
         private void OnApplicationPause(bool pause)
         {
+            if (_pluginWrapper == null)
+            {
+                return;
+            }
             if (pause)
             {
                 _pluginWrapper.Call("OnPause");

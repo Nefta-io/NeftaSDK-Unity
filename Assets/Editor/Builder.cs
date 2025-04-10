@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Nefta.Editor;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEditor.Callbacks;
@@ -36,6 +37,9 @@ namespace Editor
                 target = target,
                 options = BuildOptions.StrictMode
             };
+            
+            NeftaWindow.TryGetPluginImporters();
+            NeftaWindow.TogglePlugins(true);
             
             EditorUserBuildSettings.exportAsGoogleAndroidProject = asProject;
             

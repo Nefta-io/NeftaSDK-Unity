@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using Nefta;
 using UnityEngine;
 
@@ -32,6 +33,8 @@ namespace AdDemo
         
         private void Awake()
         {
+            CultureInfo.CurrentCulture = CultureInfo.CreateSpecificCulture("de-DE");
+            
             NeftaPluginWrapper.EnableLogging(true);
             _neftaAds = NeftaAds.Init(AppId);
             var debugParams = GetDebugParameters();

@@ -433,7 +433,7 @@ namespace Nefta
                                 }
 
                                 var doubleString = bi.Substring(start, end - start);
-                                floatVal = Double.Parse(doubleString, NumberStyles.Float);
+                                floatVal = Double.Parse(doubleString, NumberStyles.Float, CultureInfo.InvariantCulture);
                             }
                             else if (bi[start] == 'i')
                             {
@@ -448,7 +448,7 @@ namespace Nefta
                                 }
 
                                 var intString = bi.Substring(start, end - start);
-                                intVal = long.Parse(intString, NumberStyles.Number);
+                                intVal = long.Parse(intString, NumberStyles.Number, CultureInfo.InvariantCulture);
                             }
                             else if (bi[start] == 's')
                             {
