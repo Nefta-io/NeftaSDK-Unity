@@ -19,7 +19,7 @@ namespace Nefta
         private delegate void OnFailDelegate(string pId, int code, string error);
         private delegate void OnLoadDelegate(string pId, int width, int height);
         private delegate void OnChangeDelegate(string pId);
-        private delegate void OnBehaviourInsightDelegate(string behaviourInsight);
+        private delegate void OnBehaviourInsightDelegate(int requestId, string behaviourInsight);
  
         [MonoPInvokeCallback(typeof(OnReadyDelegate))] 
         private static void OnReady(string configuration) {
@@ -72,8 +72,8 @@ namespace Nefta
         }
 
         [MonoPInvokeCallback(typeof(OnBehaviourInsightDelegate))] 
-        private static void OnBehaviourInsight(string behaviourInsight) {
-            _listener?.IOnBehaviourInsight(behaviourInsight);
+        private static void OnBehaviourInsight(int requestId, string behaviourInsight) {
+            _listener?.IOnBehaviourInsight(requestId, behaviourInsight);
         }
 
         [DllImport ("__Internal")]
@@ -134,11 +134,23 @@ namespace Nefta
         private static extern string UnityWrapper_GetNuid(bool present);
 
         [DllImport ("__Internal")]
-        private static extern void UnityWrapper_GetBehaviourInsight(string insights);
+        private static extern void UnityWrapper_GetBehaviourInsight(int requestId, string insights);
 
         private static INeftaListener _listener;
 #elif UNITY_ANDROID
         private AndroidJavaObject _pluginWrapper;
+        private static AndroidJavaClass _neftaPluginClass;
+        private static AndroidJavaClass NeftaPluginClass
+        {
+            get
+            {
+                if (_neftaPluginClass == null)
+                {
+                    _neftaPluginClass = new AndroidJavaClass("com.nefta.sdk.NeftaPlugin");
+                }
+                return _neftaPluginClass;
+            }
+        }
 #endif
 
 		internal static NeftaPluginWrapper Instance;
@@ -150,10 +162,7 @@ namespace Nefta
 #elif UNITY_IOS
             NeftaPlugin_EnableLogging(enable);
 #elif UNITY_ANDROID
-            using (AndroidJavaClass neftaPlugin = new AndroidJavaClass("com.nefta.sdk.NeftaPlugin"))
-            {
-                neftaPlugin.CallStatic("EnableLogging", enable);
-            }
+            NeftaPluginClass.CallStatic("EnableLogging", enable);
 #endif
         }
 
@@ -193,14 +202,14 @@ namespace Nefta
             }
         }
 #endif
-        internal void GetBehaviourInsight(string insightList)
+        internal void GetBehaviourInsight(int id, string insightList)
         {
 #if UNITY_EDITOR
-            _pluginWrapper.GetBehaviourInsight(insightList);
+            _pluginWrapper.GetBehaviourInsight(id, insightList);
 #elif UNITY_IOS
-            UnityWrapper_GetBehaviourInsight(insightList);
+            UnityWrapper_GetBehaviourInsight(id, insightList);
 #elif UNITY_ANDROID
-            _pluginWrapper.Call("GetBehaviourInsight", insightList);
+            _pluginWrapper.Call("GetBehaviourInsightBridge", id, insightList);
 #endif
         }
 
@@ -379,10 +388,7 @@ namespace Nefta
 #elif UNITY_IOS
             UnityWrapper_SetOverride(root);
 #elif UNITY_ANDROID
-            using (AndroidJavaClass neftaPlugin = new AndroidJavaClass("com.nefta.sdk.NeftaPlugin"))
-            {
-                neftaPlugin.CallStatic("SetOverride", root);
-            }
+            NeftaPluginClass.CallStatic("SetOverride", root);
 #endif
         }
     }

@@ -20,7 +20,7 @@ extern "C" {
     typedef void (*OnFail)(const char *pId, int code, const char *error);
     typedef void (*OnLoad)(const char *pId, int width, int height);
     typedef void (*OnChange)(const char *pId);
-    typedef void (*OnBehaviourInsight)(const char *behaviourInsight);
+    typedef void (*OnBehaviourInsight)(int requestId, const char *behaviourInsight);
     
     void NeftaPlugin_EnableLogging(bool enable);
     void UnityWrapper_Init(const char *appId);
@@ -41,7 +41,7 @@ extern "C" {
     void UnityWrapper_Mute(const char *pId, bool mute);
     void UnityWrapper_SetOverride(const char *root);
     const char * UnityWrapper_GetNuid(bool present);
-    void UnityWrapper_GetBehaviourInsight(const char *insights);
+    void UnityWrapper_GetBehaviourInsight(int requestId, const char *insights);
 #ifdef __cplusplus
 }
 #endif
@@ -100,9 +100,9 @@ void UnityWrapper_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoa
         const char *cPId = [pId UTF8String];
         onReward(cPId);
     };
-    _wrapper._plugin.OnBehaviourInsightAsString = ^void(NSString * _Nonnull behaviourInsight) {
+    _wrapper._plugin.OnBehaviourInsightAsString = ^void(NSInteger requestId, NSString * _Nonnull behaviourInsight) {
         const char *cBI = [behaviourInsight UTF8String];
-        onBehaviourInsight(cBI);
+        onBehaviourInsight((int)requestId, cBI);
     };
 }
 
@@ -181,6 +181,6 @@ const char * UnityWrapper_GetNuid(bool present) {
     return returnString;
 }
 
-void UnityWrapper_GetBehaviourInsight(const char *insights) {
-    [_wrapper._plugin GetBehaviourInsightWithString: [NSString stringWithUTF8String: insights]];
+void UnityWrapper_GetBehaviourInsight(int requestId, const char *insights) {
+    [_wrapper._plugin GetBehaviourInsightBridge: requestId string: [NSString stringWithUTF8String: insights]];
 }

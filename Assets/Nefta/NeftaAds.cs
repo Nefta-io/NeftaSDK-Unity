@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using System.Threading;
 using UnityEngine;
 
 namespace Nefta
@@ -52,15 +53,32 @@ namespace Nefta
             MatureAudience = 4
         }
         
+        public delegate void OnBehaviourInsightCallback(Dictionary<string, Insight> insights);
+        
+        private class InsightRequest
+        {
+            public int _id;
+            public SynchronizationContext _returnContext;
+            public OnBehaviourInsightCallback _callback;
+
+            public InsightRequest(OnBehaviourInsightCallback callback)
+            {
+                _id = _insightId;
+                _insightId++;
+                _returnContext = SynchronizationContext.Current;
+                _callback = callback;
+            }
+        }
+        
         private Queue<Callback> _callbackQueue;
-        private IEnumerable<String> _scheduledBehaviourInsight;
-        private Dictionary<string, Insight> _behaviourInsight;
+        private List<InsightRequest> _insightRequests;
+        private static int _insightId;
         public static NeftaAds Instance { get; private set; }
 
         public Dictionary<string, AdUnit> Placements { get; private set; }
         
         public Action<Dictionary<string, AdUnit>> OnReady;
-        public Action<Dictionary<string, Insight>> OnBehaviourInsight;
+        public OnBehaviourInsightCallback OnBehaviourInsight;
         public Action<AdUnit> OnBid;
         public Action<AdUnit> OnLoadStart;
         public Action<AdUnit, string> OnLoadFail;
@@ -91,19 +109,18 @@ namespace Nefta
             var gameObject = new GameObject("_NeftaPlugin");
             Instance.PluginWrapper = gameObject.AddComponent<NeftaPluginWrapper>();
             Instance.PluginWrapper.Init(appId, Instance);
+            Instance._insightRequests = new List<InsightRequest>();
             return Instance;
         }
 
-        public void GetBehaviourInsight(IEnumerable<string> insights)
+        public void GetBehaviourInsight(IEnumerable<string> insightList, OnBehaviourInsightCallback callback=null)
         {
-            if (_scheduledBehaviourInsight != null)
-            {
-                return;
-            }
-            _scheduledBehaviourInsight = insights;
+            var request = new InsightRequest(callback ?? OnBehaviourInsight);
+            _insightRequests.Add(request);
+            
             StringBuilder sb = new StringBuilder();
             bool isFirst = true;
-            foreach (var insight in insights)
+            foreach (var insight in insightList)
             {
                 if (isFirst)
                 {
@@ -115,7 +132,7 @@ namespace Nefta
                 }
                 sb.Append(insight);
             }
-            PluginWrapper.GetBehaviourInsight(sb.ToString());
+            PluginWrapper.GetBehaviourInsight(request._id, sb.ToString());
         }
 
         public void CreateBanner(string placementId, BannerPosition position, bool autoRefresh)
@@ -392,11 +409,11 @@ namespace Nefta
             }
         }
 
-        public override void IOnBehaviourInsight(string bi)
+        public override void IOnBehaviourInsight(int id, string bi)
         {
-            lock (_callbackQueue)
+            var behaviourInsight = new Dictionary<string, Insight>();
+            if (bi != null)
             {
-                _behaviourInsight = new Dictionary<string, Insight>();
                 try
                 {
                     var start = bi.IndexOf("s\":", StringComparison.InvariantCulture) + 5;
@@ -405,7 +422,6 @@ namespace Nefta
                     {
                         var end = bi.IndexOf("\":{", start, StringComparison.InvariantCulture);
                         var key = bi.Substring(start, end - start);
-                        string status = null;
                         long intVal = 0;
                         double floatVal = 0;
                         string stringVal = null;
@@ -413,14 +429,7 @@ namespace Nefta
                         start = end + 4;
                         for (var f = 0; f < 4; f++)
                         {
-                            if (bi[start] == 's' && bi[start + 2] == 'a')
-                            {
-                                start += 9;
-                                end = bi.IndexOf("\"", start, StringComparison.InvariantCulture);
-                                status = bi.Substring(start, end - start);
-                                end++;
-                            }
-                            else if (bi[start] == 'f')
+                            if (bi[start] == 'f')
                             {
                                 start += 11;
                                 end = start + 1;
@@ -450,7 +459,7 @@ namespace Nefta
                                 var intString = bi.Substring(start, end - start);
                                 intVal = long.Parse(intString, NumberStyles.Number, CultureInfo.InvariantCulture);
                             }
-                            else if (bi[start] == 's')
+                            else if (bi[start] == 's' && bi[start + 2] == 'r')
                             {
                                 start += 13;
                                 end = bi.IndexOf("\"", start, StringComparison.InvariantCulture);
@@ -466,7 +475,7 @@ namespace Nefta
                             start = end + 2;
                         }
 
-                        _behaviourInsight[key] = new Insight(status, intVal, floatVal, stringVal);
+                        behaviourInsight[key] = new Insight(intVal, floatVal, stringVal);
 
                         if (bi[end + 1] == '}')
                         {
@@ -480,16 +489,38 @@ namespace Nefta
                 {
                     // ignored
                 }
+            }
 
-                foreach (var insightName in _scheduledBehaviourInsight)
+            try
+            {
+                InsightRequest request = null;
+                foreach (var iR in _insightRequests)
                 {
-                    if (!_behaviourInsight.ContainsKey(insightName))
+                    if (iR._id == id)
                     {
-                        _behaviourInsight.Add(insightName, new Insight("Error retrieving key", 0, 0, null));
+                        request = iR;
+                        break;
+                    }   
+                }
+                if (request == null)
+                {
+                    return;
+                }
+        
+                request._returnContext.Post(_ => request._callback(behaviourInsight), null);
+
+                for (var i = _insightRequests.Count - 1; i >= 0; i--)
+                {
+                    if (_insightRequests[i]._id == id)
+                    {
+                        _insightRequests.RemoveAt(i);
+                        break;
                     }
                 }
-
-                _scheduledBehaviourInsight = null;
+            }
+            catch (Exception)
+            {
+                // ignored
             }
         }
         
@@ -533,12 +564,6 @@ namespace Nefta
                             OnClose?.Invoke(callback.AdUnit);
                             break;
                     }
-                }
-                
-                if (_behaviourInsight != null)
-                {
-                    OnBehaviourInsight(_behaviourInsight);
-                    _behaviourInsight = null;
                 }
             }
         }
