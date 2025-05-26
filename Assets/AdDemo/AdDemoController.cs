@@ -26,7 +26,7 @@ namespace AdDemo
 
         private NeftaAds _neftaAds;
         private bool _isBannerShown;
-        private Dictionary<string, PlacementController> _placementControllers;
+        private Dictionary<string, IPlacement> _placementControllers;
         private DebugServer _debugServer;
         private float _stateTime;
         private bool _permissionChecked;
@@ -90,7 +90,7 @@ namespace AdDemo
         
         private void OnReady(Dictionary<string, AdUnit> placements)
         {
-            _placementControllers = new Dictionary<string, PlacementController>();
+            _placementControllers = new Dictionary<string, IPlacement>();
             foreach (var placement in placements)
             {
                 if (placement.Value._type == AdUnit.Type.Banner)
@@ -98,20 +98,17 @@ namespace AdDemo
                     var bannerController = Instantiate(bannerPrefab, _placementRect);
                     bannerController.SetData(placement.Value, AdjustOffsets);
                     _placementControllers.Add(placement.Key, bannerController);
+                    
+                    _neftaAds.SetFloorPrice(BannerAdUnitId, 0.042f);
+
+                    _neftaAds.CreateBanner(BannerAdUnitId, NeftaAds.BannerPosition.Top, true);
+                    _neftaAds.Show(BannerAdUnitId);
                 }
                 else
                 {
                     var interactiveController = Instantiate(_interactivePrefab, _placementRect);
                     interactiveController.SetData(placement.Value);
                     _placementControllers.Add(placement.Key, interactiveController);
-                }
-                
-                if (placement.Key == BannerAdUnitId)
-                {
-                    _neftaAds.SetFloorPrice(BannerAdUnitId, 0.42f);
-
-                    _neftaAds.CreateBanner(BannerAdUnitId, NeftaAds.BannerPosition.Top, true);
-                    _neftaAds.Show(BannerAdUnitId);
                 }
             }
         }
