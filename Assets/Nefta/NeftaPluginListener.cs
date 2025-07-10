@@ -51,7 +51,7 @@ namespace Nefta
         {
         }
 
-        public virtual void IOnBehaviourInsight(int id, string behaviourInsight)
+        public virtual void IOnInsights(int id, string insights)
         {
             
         }

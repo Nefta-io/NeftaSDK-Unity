@@ -20,11 +20,11 @@ extern "C" {
     typedef void (*OnFail)(const char *pId, int code, const char *error);
     typedef void (*OnLoad)(const char *pId, int width, int height);
     typedef void (*OnChange)(const char *pId);
-    typedef void (*OnBehaviourInsight)(int requestId, const char *behaviourInsight);
+    typedef void (*OnInsights)(int requestId, const char *insights);
     
     void NeftaPlugin_EnableLogging(bool enable);
     void UnityWrapper_Init(const char *appId);
-    void UnityWrapper_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoadStart, OnFail onLoadFail, OnLoad onLoad, OnFail onShowFail, OnChange onShow, OnChange onClick, OnChange onClose, OnChange onReward, OnBehaviourInsight OnBehaviourInsight);
+    void UnityWrapper_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoadStart, OnFail onLoadFail, OnLoad onLoad, OnFail onShowFail, OnChange onShow, OnChange onClick, OnChange onClose, OnChange onReward, OnInsights OnInsights);
     void UnityWrapper_Record(int type, int category, int subCategory, const char *name, long value, const char *customPayload);
     void UnityWrapper_SetPublisherUserId(const char *userId);
     void UnityWrapper_SetContentRating(const char *rating);
@@ -57,7 +57,7 @@ void UnityWrapper_Init(const char *appId) {
     _wrapper = [[UnityWrapper alloc] initWithViewController: viewController appId: [NSString stringWithUTF8String: appId]];
 }
 
-void UnityWrapper_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoadStart, OnFail onLoadFail, OnLoad onLoad, OnFail onShowFail, OnChange onShow, OnChange onClick, OnChange onClose, OnChange onReward, OnBehaviourInsight onBehaviourInsight) {
+void UnityWrapper_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoadStart, OnFail onLoadFail, OnLoad onLoad, OnFail onShowFail, OnChange onShow, OnChange onClick, OnChange onClose, OnChange onReward, OnInsights onInsights) {
     _wrapper.IOnReady = ^void(NSString * _Nonnull configuration) {
         const char *cConfiguration = [configuration UTF8String];
         onReady(cConfiguration);
@@ -100,9 +100,9 @@ void UnityWrapper_RegisterCallbacks(OnReady onReady, OnBid onBid, OnChange onLoa
         const char *cPId = [pId UTF8String];
         onReward(cPId);
     };
-    _wrapper._plugin.OnBehaviourInsightAsString = ^void(NSInteger requestId, NSString * _Nonnull behaviourInsight) {
-        const char *cBI = [behaviourInsight UTF8String];
-        onBehaviourInsight((int)requestId, cBI);
+    _wrapper._plugin.OnInsightsAsString = ^void(NSInteger requestId, NSString * _Nullable insights) {
+        const char *cBI = insights ? [insights UTF8String] : NULL;
+        onInsights((int)requestId, cBI);
     };
 }
 
@@ -181,6 +181,6 @@ const char * UnityWrapper_GetNuid(bool present) {
     return returnString;
 }
 
-void UnityWrapper_GetBehaviourInsight(int requestId, const char *insights) {
-    [_wrapper._plugin GetBehaviourInsightBridge: requestId string: [NSString stringWithUTF8String: insights]];
+void UnityWrapper_GetInsights(int requestId, int insights, int timeoutInSeconds) {
+    [_wrapper._plugin GetInsightsBridge: requestId insights: insights timeout: timeoutInSeconds];
 }

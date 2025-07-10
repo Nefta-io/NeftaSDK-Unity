@@ -14,7 +14,7 @@ namespace Nefta
         void IOnReward(string pId);
         void IOnClose(string pId);
 
-        void IOnBehaviourInsight(int requestId, string behaviourInsight);
+        void IOnInsights(int requestId, string insights);
     }
 }
 #endif

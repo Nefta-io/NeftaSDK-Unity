@@ -55,10 +55,7 @@ namespace AdDemo
             _neftaAds.OnShow = OnShow;
             _neftaAds.OnClose = OnClose;
             _neftaAds.OnUserRewarded = OnUserRewarded;
-
-            _neftaAds.OnBehaviourInsight = OnBehaviourInsight;
             
-            _neftaAds.GetBehaviourInsight(new string[] { "p_churn_14d", "non e", "p_churn_30d"});
             _neftaAds.SetContentRating(NeftaAds.ContentRating.Teen);
             
             AdjustOffsets(0);
@@ -69,10 +66,6 @@ namespace AdDemo
             if (_debugServer != null)
             {
                 _debugServer.OnUpdate();
-            }
-            if (_neftaAds != null)
-            {
-                _neftaAds.OnUpdate();
             }
 
 #if !UNITY_EDITOR && UNITY_IOS
@@ -110,15 +103,6 @@ namespace AdDemo
                     interactiveController.SetData(placement.Value);
                     _placementControllers.Add(placement.Key, interactiveController);
                 }
-            }
-        }
-
-        private void OnBehaviourInsight(Dictionary<string, Insight> behaviourInsight)
-        {
-            foreach (var insight in behaviourInsight)
-            {
-                var insightValue = insight.Value;
-                Debug.Log($"DI BehaviourInsight {insight.Key} i:{insightValue._int} f:{insightValue._float} s:{insightValue._string}");
             }
         }
 

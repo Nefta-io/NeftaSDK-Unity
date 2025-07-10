@@ -19,7 +19,7 @@ namespace Nefta
         private delegate void OnFailDelegate(string pId, int code, string error);
         private delegate void OnLoadDelegate(string pId, int width, int height);
         private delegate void OnChangeDelegate(string pId);
-        private delegate void OnBehaviourInsightDelegate(int requestId, string behaviourInsight);
+        private delegate void OnInsightsDelegate(int requestId, string insights);
  
         [MonoPInvokeCallback(typeof(OnReadyDelegate))] 
         private static void OnReady(string configuration) {
@@ -71,9 +71,9 @@ namespace Nefta
             _listener?.IOnReward(pId);
         }
 
-        [MonoPInvokeCallback(typeof(OnBehaviourInsightDelegate))] 
-        private static void OnBehaviourInsight(int requestId, string behaviourInsight) {
-            _listener?.IOnBehaviourInsight(requestId, behaviourInsight);
+        [MonoPInvokeCallback(typeof(OnInsightsDelegate))] 
+        private static void OnInsights(int requestId, string insights) {
+            _listener?.IOnInsights(requestId, insights);
         }
 
         [DllImport ("__Internal")]
@@ -83,7 +83,7 @@ namespace Nefta
         private static extern void UnityWrapper_Init(string appId);
 
         [DllImport ("__Internal")]
-        private static extern void UnityWrapper_RegisterCallbacks(OnReadyDelegate onReady, OnBidDelegate onBid, OnChangeDelegate onLoadStart, OnFailDelegate onLoadFail, OnLoadDelegate onLoad, OnFailDelegate onShowFail, OnChangeDelegate onShow, OnChangeDelegate onClick, OnChangeDelegate onClose, OnChangeDelegate onReward, OnBehaviourInsightDelegate onBehaviourInsight);
+        private static extern void UnityWrapper_RegisterCallbacks(OnReadyDelegate onReady, OnBidDelegate onBid, OnChangeDelegate onLoadStart, OnFailDelegate onLoadFail, OnLoadDelegate onLoad, OnFailDelegate onShowFail, OnChangeDelegate onShow, OnChangeDelegate onClick, OnChangeDelegate onClose, OnChangeDelegate onReward, OnInsightsDelegate onInsights);
 
         [DllImport ("__Internal")]
         private static extern void UnityWrapper_Record(int type, int category, int subCategory, string nameValue, long value, string customPayload);
@@ -134,7 +134,7 @@ namespace Nefta
         private static extern string UnityWrapper_GetNuid(bool present);
 
         [DllImport ("__Internal")]
-        private static extern void UnityWrapper_GetBehaviourInsight(int requestId, string insights);
+        private static extern void UnityWrapper_GetInsights(int requestId, int insights, int timeoutInSeconds);
 
         private static INeftaListener _listener;
 #elif UNITY_ANDROID
@@ -175,41 +175,30 @@ namespace Nefta
 #elif UNITY_IOS
             UnityWrapper_Init(appId);
             _listener = listener;
-            UnityWrapper_RegisterCallbacks(OnReady, OnBid, OnLoadStart, OnLoadFail, OnLoad, OnShowFail, OnShow, OnClick, OnClose, OnReward, OnBehaviourInsight);
+            UnityWrapper_RegisterCallbacks(OnReady, OnBid, OnLoadStart, OnLoadFail, OnLoad, OnShowFail, OnShow, OnClick, OnClose, OnReward, OnInsights);
 #elif UNITY_ANDROID
             AndroidJavaClass unityClass = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
             AndroidJavaObject _unityActivity = unityClass.GetStatic<AndroidJavaObject>("currentActivity");
 
             _pluginWrapper = new AndroidJavaObject("com.nefta.sdk.Unity.UnityWrapper", _unityActivity, appId, listener);
 #endif
+            hideFlags = HideFlags.HideAndDontSave;
             DontDestroyOnLoad(gameObject);
         }
-        
-#if !UNITY_EDITOR && UNITY_ANDROID
-        private void OnApplicationPause(bool pause)
+
+        private void Update()
         {
-            if (_pluginWrapper == null)
-            {
-                return;
-            }
-            if (pause)
-            {
-                _pluginWrapper.Call("OnPause");
-            }
-            else
-            {
-                 _pluginWrapper.Call("OnResume");
-            }
+            NeftaAds.Instance.OnUpdate();
         }
-#endif
-        internal void GetBehaviourInsight(int id, string insightList)
+        
+        internal void GetInsights(int id, int insights, int timeoutInSeconds)
         {
 #if UNITY_EDITOR
-            _pluginWrapper.GetBehaviourInsight(id, insightList);
+            _pluginWrapper.GetInsights(id, insights, timeoutInSeconds);
 #elif UNITY_IOS
-            UnityWrapper_GetBehaviourInsight(id, insightList);
+            UnityWrapper_GetInsights(id, insights, timeoutInSeconds);
 #elif UNITY_ANDROID
-            _pluginWrapper.Call("GetBehaviourInsightBridge", id, insightList);
+            _pluginWrapper.Call("GetInsightsBridge", id, insights, timeoutInSeconds);
 #endif
         }
 
@@ -384,7 +373,7 @@ namespace Nefta
         
         internal void SetOverride(string root) {
 #if UNITY_EDITOR
-            _pluginWrapper.Override(root);
+            NeftaPlugin.SetOverride(root);
 #elif UNITY_IOS
             UnityWrapper_SetOverride(root);
 #elif UNITY_ANDROID

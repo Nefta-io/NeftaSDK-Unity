@@ -6,9 +6,10 @@ namespace Nefta
     {
         public enum Type
         {
-            Banner = 0,
-            Interstitial = 1,
-            VideoAd = 2
+            Other = 0,
+            Banner = 1,
+            Interstitial = 2,
+            VideoAd = 3
         }
 
         public enum Mode

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Text;
 using System.Threading;
 using UnityEngine;
@@ -53,18 +52,18 @@ namespace Nefta
             MatureAudience = 4
         }
         
-        public delegate void OnBehaviourInsightCallback(Dictionary<string, Insight> insights);
+        public delegate void OnInsightsCallback(Insights insights);
         
         private class InsightRequest
         {
             public int _id;
+            public IEnumerable<string> _insights;
             public SynchronizationContext _returnContext;
-            public OnBehaviourInsightCallback _callback;
+            public OnInsightsCallback _callback;
 
-            public InsightRequest(OnBehaviourInsightCallback callback)
+            public InsightRequest(int id, OnInsightsCallback callback)
             {
-                _id = _insightId;
-                _insightId++;
+                _id = id;
                 _returnContext = SynchronizationContext.Current;
                 _callback = callback;
             }
@@ -78,7 +77,6 @@ namespace Nefta
         public Dictionary<string, AdUnit> Placements { get; private set; }
         
         public Action<Dictionary<string, AdUnit>> OnReady;
-        public OnBehaviourInsightCallback OnBehaviourInsight;
         public Action<AdUnit> OnBid;
         public Action<AdUnit> OnLoadStart;
         public Action<AdUnit, string> OnLoadFail;
@@ -112,27 +110,19 @@ namespace Nefta
             Instance._insightRequests = new List<InsightRequest>();
             return Instance;
         }
-
-        public void GetBehaviourInsight(IEnumerable<string> insightList, OnBehaviourInsightCallback callback=null)
+        
+        public void GetInsights(int insights, OnInsightsCallback callback, int timeoutInSeconds=0)
         {
-            var request = new InsightRequest(callback ?? OnBehaviourInsight);
-            _insightRequests.Add(request);
-            
-            StringBuilder sb = new StringBuilder();
-            bool isFirst = true;
-            foreach (var insight in insightList)
+            var id = 0;
+            lock (_insightRequests)
             {
-                if (isFirst)
-                {
-                    isFirst = false;
-                }
-                else
-                {
-                    sb.Append(",");
-                }
-                sb.Append(insight);
+                id = _insightId;
+                var request = new InsightRequest(id, callback);
+                _insightRequests.Add(request);
+                _insightId++;
             }
-            PluginWrapper.GetBehaviourInsight(request._id, sb.ToString());
+            
+            PluginWrapper.GetInsights(id, insights, timeoutInSeconds);
         }
 
         public void CreateBanner(string placementId, BannerPosition position, bool autoRefresh)
@@ -409,112 +399,22 @@ namespace Nefta
             }
         }
 
-        public override void IOnBehaviourInsight(int id, string bi)
+        public override void IOnInsights(int id, string bi)
         {
-            var behaviourInsight = new Dictionary<string, Insight>();
-            if (bi != null)
-            {
-                try
-                {
-                    var start = bi.IndexOf("s\":", StringComparison.InvariantCulture) + 5;
-
-                    while (start != -1 && start < bi.Length)
-                    {
-                        var end = bi.IndexOf("\":{", start, StringComparison.InvariantCulture);
-                        var key = bi.Substring(start, end - start);
-                        long intVal = 0;
-                        double floatVal = 0;
-                        string stringVal = null;
-
-                        start = end + 4;
-                        for (var f = 0; f < 4; f++)
-                        {
-                            if (bi[start] == 'f')
-                            {
-                                start += 11;
-                                end = start + 1;
-                                for (; end < bi.Length; end++)
-                                {
-                                    if (bi[end] == ',' || bi[end] == '}')
-                                    {
-                                        break;
-                                    }
-                                }
-
-                                var doubleString = bi.Substring(start, end - start);
-                                floatVal = Double.Parse(doubleString, NumberStyles.Float, CultureInfo.InvariantCulture);
-                            }
-                            else if (bi[start] == 'i')
-                            {
-                                start += 9;
-                                end = start + 1;
-                                for (; end < bi.Length; end++)
-                                {
-                                    if (bi[end] == ',' || bi[end] == '}')
-                                    {
-                                        break;
-                                    }
-                                }
-
-                                var intString = bi.Substring(start, end - start);
-                                intVal = long.Parse(intString, NumberStyles.Number, CultureInfo.InvariantCulture);
-                            }
-                            else if (bi[start] == 's' && bi[start + 2] == 'r')
-                            {
-                                start += 13;
-                                end = bi.IndexOf("\"", start, StringComparison.InvariantCulture);
-                                stringVal = bi.Substring(start, end - start);
-                                end++;
-                            }
-
-                            if (bi[end] == '}')
-                            {
-                                break;
-                            }
-
-                            start = end + 2;
-                        }
-
-                        behaviourInsight[key] = new Insight(intVal, floatVal, stringVal);
-
-                        if (bi[end + 1] == '}')
-                        {
-                            break;
-                        }
-
-                        start = end + 3;
-                    }
-                }
-                catch (Exception)
-                {
-                    // ignored
-                }
-            }
-
+            var insights = new Insights(JsonUtility.FromJson<InsightsDto>(bi));
             try
             {
-                InsightRequest request = null;
-                foreach (var iR in _insightRequests)
+                lock (_insightRequests)
                 {
-                    if (iR._id == id)
+                    for (var i = _insightRequests.Count - 1; i >= 0; i--)
                     {
-                        request = iR;
-                        break;
-                    }   
-                }
-                if (request == null)
-                {
-                    return;
-                }
-        
-                request._returnContext.Post(_ => request._callback(behaviourInsight), null);
-
-                for (var i = _insightRequests.Count - 1; i >= 0; i--)
-                {
-                    if (_insightRequests[i]._id == id)
-                    {
-                        _insightRequests.RemoveAt(i);
-                        break;
+                        var insightRequest = _insightRequests[i];
+                        if (insightRequest._id == id)
+                        {
+                            insightRequest._returnContext.Post(_ => insightRequest._callback(insights), null);
+                            _insightRequests.RemoveAt(i);
+                            break;
+                        }
                     }
                 }
             }
