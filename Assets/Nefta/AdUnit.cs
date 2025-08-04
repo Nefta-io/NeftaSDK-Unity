@@ -9,7 +9,7 @@ namespace Nefta
             Other = 0,
             Banner = 1,
             Interstitial = 2,
-            VideoAd = 3
+            Rewarded = 3
         }
 
         public enum Mode

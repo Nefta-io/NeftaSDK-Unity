@@ -260,7 +260,7 @@ namespace Nefta
                     AdUnit.Type adType;
                     if (configuration[typeIndex] == 'r')
                     {
-                        adType = AdUnit.Type.VideoAd;
+                        adType = AdUnit.Type.Rewarded;
                     }
                     else if (configuration[typeIndex] == 'i')
                     {

@@ -39,6 +39,7 @@ namespace Nefta
                 {
                     _banner = new AdInsight()
                     {
+                        _type = AdUnit.Type.Banner,
                         _floorPrice = banner.floor_price,
                         _adUnit = banner.ad_unit
                     };
@@ -48,6 +49,7 @@ namespace Nefta
                 {
                     _interstitial = new AdInsight()
                     {
+                        _type = AdUnit.Type.Interstitial,
                         _floorPrice = interstitial.floor_price,
                         _adUnit = interstitial.ad_unit
                     };
@@ -56,8 +58,9 @@ namespace Nefta
                 var rewarded = dto.floor_price.rewarded_configuration;
                 if (rewarded != null)
                 {
-                    _banner = new AdInsight()
+                    _rewarded = new AdInsight()
                     {
+                        _type = AdUnit.Type.Rewarded,
                         _floorPrice = rewarded.floor_price,
                         _adUnit = rewarded.ad_unit
                     };
